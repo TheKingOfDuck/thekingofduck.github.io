@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-21T12:57:25.009Z</updated>
+    <updated>2020-02-21T13:07:25.368Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -535,16 +535,6 @@ rar
 <h3 id="0x08-总结">0x08 总结</h3>
 <p>熟练使用这些作战功能，扫描器从此是路人。</p>
 <p>技术交流：https://github.com/TheKingOfDuck</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Hello Word]]></title>
-        <id>https://thekingofduck.github.io/post/hello/</id>
-        <link href="https://thekingofduck.github.io/post/hello/">
-        </link>
-        <updated>2018-12-11T16:00:00.000Z</updated>
-        <content type="html"><![CDATA[<p>💻  It's CoolCat</p>
-<p>😘 Enjoy~</p>
 ]]></content>
     </entry>
 </feed>
