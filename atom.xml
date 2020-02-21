@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-21T13:08:44.911Z</updated>
+    <updated>2020-02-21T14:07:17.607Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,43 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[ApkAnalyser：一键提取安卓应用中可能存在的敏感信息。]]></title>
+        <id>https://thekingofduck.github.io/post/ApkAnalyser/</id>
+        <link href="https://thekingofduck.github.io/post/ApkAnalyser/">
+        </link>
+        <updated>2020-02-21T13:20:47.000Z</updated>
+        <content type="html"><![CDATA[<!-- more -->
+<p>✔️即兴开发，Enjoy it~~</p>
+<!-- more -->
+<!-- more -->
+<!-- more -->
+<p>项目地址：https://github.com/TheKingOfDuck/ApkAnalyser</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582291987982.png" alt="" loading="lazy"></figure>
+<p>目前提取了APK内:</p>
+<ul>
+<li>
+<p>所有字符串</p>
+</li>
+<li>
+<p>所以URLs</p>
+</li>
+<li>
+<p>所有ip</p>
+</li>
+<li>
+<p>可能是hash值的字符串</p>
+</li>
+<li>
+<p>存在的敏感词（如oss.aliyun）</p>
+</li>
+<li>
+<p>可能是accessKey的值</p>
+<p>使用Python开发，依赖于apkutils模块，可执行文件使用pyinstaller打包。</p>
+</li>
+</ul>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[ReverseGoShell：一款动态加密的反弹shell管理工具]]></title>
         <id>https://thekingofduck.github.io/post/ReverseGoShell/</id>
