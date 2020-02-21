@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-21T12:00:44.055Z</updated>
+    <updated>2020-02-21T12:19:23.713Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -11,13 +11,54 @@
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
     <entry>
+        <title type="html"><![CDATA[ReverseGoShell：一款动态加密的反弹shell管理工具]]></title>
+        <id>https://thekingofduck.github.io/post/ReverseGoShell/</id>
+        <link href="https://thekingofduck.github.io/post/ReverseGoShell/">
+        </link>
+        <updated>2020-02-21T12:08:34.000Z</updated>
+        <content type="html"><![CDATA[<p>Github: https://github.com/TheKingOfDuck/ReverseGoShell/</p>
+<h3 id="description">Description:</h3>
+<p>A Golang Reverse Shell Tools With AES Dynamic Encryption</p>
+<pre><code> _____                               _____       _____ _          _ _ 
+|  __ \     Code By: CoolCat       / ____|     / ____| |        | | |
+| |__) |_____   _____ _ __ ___  ___| |  __  ___| (___ | |__   ___| | |
+|  _  // _ \ \ / / _ \ '__/ __|/ _ \ | |_ |/ _ \\___ \| '_ \ / _ \ | |
+| | \ \  __/\ V /  __/ |  \__ \  __/ |__| | (_) |___) | | | |  __/ | |
+|_|  \_\___| \_/ \___|_|  |___/\___|\_____|\___/_____/|_| |_|\___|_|_| 
+ - | Modules    | - Function.
+ - | checkav    | - Show Remote-Host Info.
+ - | Download   | - Download File from Remote-Host to Local-Host.
+ - | Keyloger   | - Unfinished.
+ - | Screenshot | - Unfinished.
+
+</code></pre>
+<h3 id="useage">Useage:</h3>
+<h4 id="build">Build</h4>
+<pre><code>go build server.go
+go build client.go
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582287277450.jpg" alt="" loading="lazy"></figure>
+<h4 id="run">Run</h4>
+<pre><code>server 55555
+client 127.0.0.1:55555
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582287290541.jpg" alt="" loading="lazy"></figure>
+<h3 id="features">Features</h3>
+<p>1.AES Dynamic encryption<br>
+2.Supports Multiple Shells</p>
+<h3 id="about">About</h3>
+<p>这个项目只是自己学习Golang过程中实践的产物，代码写得很垃圾，但是注释都尽量写清楚的，通讯流量走tcp协议，采用aes动态加密，可以说是完全模仿冰蝎。基础功能执行命令已实现，模块化的检查存在的杀毒软件以及下载文件写完，其他模块还得在花时间。相比同类小工具我觉得最大的优点就是支持了动态加密，并且可以同时管理多个会话。</p>
+<p><strong>本项目接受建议</strong></p>
+<p>比如希望增加特定功能，再比如某个位置代码写得不规范，或是有bug，有空我会慢慢改。</p>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[Hello Word]]></title>
         <id>https://thekingofduck.github.io/post/hello/</id>
         <link href="https://thekingofduck.github.io/post/hello/">
         </link>
         <updated>2018-12-11T16:00:00.000Z</updated>
         <content type="html"><![CDATA[<p>💻  It's CoolCat</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582285975259.png" alt="" loading="lazy"></figure>
 <p>😘 Enjoy~</p>
 ]]></content>
     </entry>
