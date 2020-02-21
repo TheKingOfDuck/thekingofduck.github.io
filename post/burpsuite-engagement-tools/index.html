@@ -17,11 +17,19 @@ function getCSS()
         datetoday.setTime(timenow);
         thehour = datetoday.getHours();
 
+        if (thehour<08时)
+
             display = "/media/css/night.css";
 
+       else if (thehour>21时)
+
             display = "/media/css/night.css";   
-      
+
+        else if (thehour>08时)
+           
             display = "/media/css/day.css";
+
+        else if (thehour<21时)
 
             display = "/media/css/day.css";
       
