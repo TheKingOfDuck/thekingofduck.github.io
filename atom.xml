@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-28T10:00:31.685Z</updated>
+    <updated>2020-02-29T11:16:11.357Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,22 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[利用cscript进行内网端口扫描]]></title>
+        <id>https://thekingofduck.github.io/post/scan-ports-by-cscript/</id>
+        <link href="https://thekingofduck.github.io/post/scan-ports-by-cscript/">
+        </link>
+        <updated>2020-02-28T13:06:54.000Z</updated>
+        <content type="html"><![CDATA[<p>Code:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582974509141.png" alt="" loading="lazy"></figure>
+<p>保存为xxx.vbs&gt;</p>
+<pre><code> cscript.exe this.vbs ip 80 or 80,123,445
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582974824988.png" alt="" loading="lazy"></figure>
+<p>原生，动静小。</p>
+<p>适合防御严格的内网扫描。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[CVE-2020-8840复现]]></title>
         <id>https://thekingofduck.github.io/post/CVE-2020-8840/</id>
