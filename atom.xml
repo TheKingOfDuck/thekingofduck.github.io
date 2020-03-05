@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-05T05:52:59.501Z</updated>
+    <updated>2020-03-05T05:55:58.133Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -33,6 +33,7 @@
 5.Service1将用户携带过来的FTGT发送给KDC，并要求一个能访问Service2的TGS2，KDC返回TGS2给Service1。<br>
 6.Service1代表用户携带TGS2向Service2请求资源，Service2把资源返回给Service1<br>
 7.Servive1将自身资源与Service资源以并返回给用户。</p>
+<p>还没学完垃圾Gridea就一起同步了。</p>
 <p>参考文章：<br>
 <a href="https://xz.aliyun.com/t/7217">Kerberos委派攻击</a></p>
 ]]></content>
