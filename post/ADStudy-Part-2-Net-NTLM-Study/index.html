@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>利用cscript进行内网端口扫描 | CoolCat&#39; Blog</title>	
+<title>域渗透学习笔记二：Windows认证机制Net-NTLM刨析 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/scan-ports-by-cscript.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-2-Net-NTLM-Study.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">利用cscript进行内网端口扫描</h1>
+			<h1 class="wow swing entry-title">域渗透学习笔记二：Windows认证机制Net-NTLM刨析</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-02-28 21:06:54" itemprop="datePublished" pubdate="">2020-02-28</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-02 12:09:31" itemprop="datePublished" pubdate="">2020-03-02</time></i>
 	          </div>
 			
 </span>
@@ -165,33 +165,101 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>Code:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582974509141.png" alt="" loading="lazy"></figure>
-<p>保存为xxx.vbs&gt;</p>
-<pre><code> cscript.exe this.vbs ip 80 or 80,123,445
-</code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582974824988.png" alt="" loading="lazy"></figure>
-<p>原生，动静小。</p>
-<p>适合防御严格的内网扫描。</p>
+				<p><strong>基础知识</strong></p>
+<p>1.Windows本地认证：</p>
+<p>认证的密码储存在SAM文件中，其位置为C:/Windows/system32/config/sam，词组security account manager,意思是安全账号管理器，其作用是对windows账户安全管理，类似于linux系统中的/etc/passwd文件,删除该文件即可删除账号密码。这也是PE破解系统密码的原理。</p>
+<p>登录认证是会从该文件读取里面的加密后的密码(NTLM hash)和用户输入的密码进行对比。</p>
+<p>NTLM hash生成流程如下：</p>
+<ul>
+<li>
+<p>将明文口令转换成十六进制的格式</p>
+</li>
+<li>
+<p>转换成Unicode格式，即在每个字节之后添加0x00</p>
+</li>
+<li>
+<p>对Unicode字符串作MD4加密，生成32位的十六进制数字串</p>
+<p>NTLM hash支持Net NTLM认证协议以及本地认证协议。其前身为LM Hash(LM算法脆弱，响应存在一些缺陷。主要出现在xp，03之下的系统)</p>
+</li>
+</ul>
+<p>Net-NTLM认证流程：</p>
+<ul>
+<li>协商：主要用于确认双方协议版本</li>
+<li>质询：就是挑战（Chalenge）/响应（Response）认证机制起作用的范畴。</li>
+<li>验证：验证主要是在质询完成后，验证结果，是认证的最后一步。</li>
+</ul>
+<p>质询的完整过程：</p>
+<ul>
+<li>1.客户端向服务器端发送用户信息(用户名)请求</li>
+<li>2.服务器接受到请求，生成一个16位的随机数，被称之为“Challenge”， 使用登录用户名对应的NTLM Hash加密Challenge(16位随机字符)， 生成Challenge1。生成一 个Net-NTLM Hash存在内存中，同时，生成Challenge1后，将Challenge(16位随机 字符)发送给客户端。</li>
+<li>3.客户端接受到Challenge后，使用将要登录到账户对应的NTLM Hash加密Challenge生成Response，然后将Response发送至服务器端。</li>
+</ul>
+<p>其中，经过NTLM Hash加密Challenge的结果在网络协议中称之为Net NTLM Hash。</p>
+<p>验证： 服务器端收到客户端的Response后，比对Chanllenge1与Response是否相等，若相等，则认证通过。</p>
+<p>注意:</p>
+<p>1.Chanllenge是Server产生的一个16字节的随机数，每次认证都不同<br>
+2.Response的表现形式是Net-NTLM Hash，它是由客户端 提供的密码Hash加密Server返回的Chanllenge产生的结果。<br>
+3.SMB走的也是Net-NTLM协议。</p>
+<p>以上属于Net-NTLM v2协议的详细流程<br>
+Net-NTLMv1的加密流程如下：</p>
+<ul>
+<li>1.客户端向服务器发送一个请求</li>
+<li>2.服务器接收到请求后，生成一个8位的Challenge，发送回客户端</li>
+<li>3.客户端接收到Challenge后，使用登录用户的密码hash对Challenge加密，作为response发送给服务器</li>
+<li>4.服务器校验response<br>
+两者的流程可以说是相同的，但加密算法不同，后者Net-NTLMv1相对脆弱</li>
+</ul>
+<p><strong>质询抓包分析</strong></p>
+<p>使用域户向域控共享目录发起请求，<br>
+<img src="https://thekingofduck.github.io/post-images/1583247680147.png" alt="" loading="lazy"></p>
+<p>在域用户机器上Wireshark抓包如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583250718347.png" alt="" loading="lazy"></figure>
+<p>步骤上质询有四步,可以将其看为一发一收两个来回</p>
+<p>第一发：基础信息发送</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583250826048.png" alt="" loading="lazy"></figure>
+<p>第一收：获取对方生成并发过来的Challenge</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583250919881.png" alt="" loading="lazy"></figure>
+<p>第二发：将要登录到账户对应的NTLM Hash加密Challenge生成Response并发给服务器</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<p>第二收：服务器校验response并返回结果</p>
+<p><img src="https://thekingofduck.github.io/post-images/1583251428310.png" alt="" loading="lazy"><br>
+（登录成功）<br>
+<img src="https://thekingofduck.github.io/post-images/1583251781830.png" alt="" loading="lazy"><br>
+（登录失败）</p>
+<p>至此Net-NTLM协议通讯过程分析完成，也可以看到文章<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a>0x03 Net-NTLM hash中的分析是错误的。</p>
+<p>有个非常值得关注的点：</p>
+<ul>
+<li><strong>当用户进行涉及Net-NTLM认证的访问时系统默认会先将本地NTLM hash去走一遍Net-NTLM验证。</strong></li>
+</ul>
+<p>NTLM本地认证流程：</p>
+<blockquote>
+<p>winlogon.exe -&gt; 接收用户输入<br>
+lsass.exe -&gt; 认证</p>
+</blockquote>
+<hr>
+<p><strong>工作组认证和域环境认证的区别：</strong></p>
+<p>工作组：点对点交易，无法相互信任。<br>
+域环境：有信托机构(域)，相当于闲鱼卖东西需要闲鱼官方担保。</p>
+<p>参考资料：</p>
+<p><a href="https://www.bilibili.com/video/av65934941?from=search&amp;seid=9042861733006388518">彻底理解Windows认证</a><br>
+<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a></p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/j1HUpRp1w/" rel="tag">cscript</a>	
+				<a href="https://thekingofduck.github.io/tag/fZyhXM0T7/" rel="tag">NTLM协议</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/Fw__NPNK8i/" rel="tag">portscan</a>	
-				 
-				<a href="https://thekingofduck.github.io/tag/9kbi-GM-y2/" rel="tag">端口扫描</a>	
+				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/" rel="prev"> 域渗透学习笔记一：域环境的搭建</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/" rel="prev"> 域渗透学习笔记三：攻击NTLM</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/CVE-2020-8840/" rel="next"> CVE-2020-8840复现</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/" rel="next"> 域渗透学习笔记一：域环境的搭建</a></div>
 		
 		</div>
 	</nav>
