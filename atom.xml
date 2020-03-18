@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-18T15:02:23.840Z</updated>
+    <updated>2020-03-18T15:08:04.445Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -82,34 +82,6 @@
 <li>WX:TheKingOfGaGaGa</li>
 <li>Github:<a href="https://github.com/TheKingOfDuck">https://github.com/TheKingOfDuck</a></li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[域渗透学习笔记六：Kerbroes委派攻击及与NTLM Relay的组合]]></title>
-        <id>https://thekingofduck.github.io/post/ADStudy-Part-6-Kerbroes-Delegation-NTLM-Relay/</id>
-        <link href="https://thekingofduck.github.io/post/ADStudy-Part-6-Kerbroes-Delegation-NTLM-Relay/">
-        </link>
-        <updated>2020-03-04T14:49:41.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="基础知识">基础知识</h3>
-<blockquote>
-<p>域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动</p>
-</blockquote>
-<p>回顾正常的认证流程：</p>
-<p>KDC认证的部分</p>
-<p>1.用户告诉AD我是谁，AD给用户TGT。<br>
-2.用户拿着TGT并携带身份告诉AS我是谁，AS给用户TGS<br>
-3.用户拿着TGS要求访问服务，服务询问AS TGS是否存在。</p>
-<p>委派：<br>
-1.用户正常进行向KDC发起一次认证请求，KDC返回第一个TGS。<br>
-2.用户携带已有的TGS请求需要一个FTGT(Forwardable TGT),KDC返回一个FTGT。<br>
-3.用户携带已有的TGS告诉KDC需要一个能访问Service1的TGS，KDC返回能访问Service1的TGS1<br>
-4.用户携带FTGT以及能访问Service1的TGS1访问Service1。<br>
-5.Service1将用户携带过来的FTGT发送给KDC，并要求一个能访问Service2的TGS2，KDC返回TGS2给Service1。<br>
-6.Service1代表用户携带TGS2向Service2请求资源，Service2把资源返回给Service1<br>
-7.Servive1将自身资源与Service资源以并返回给用户。</p>
-<p>还没学完垃圾Gridea就一起同步了。</p>
-<p>参考文章：<br>
-<a href="https://xz.aliyun.com/t/7217">Kerberos委派攻击</a></p>
 ]]></content>
     </entry>
     <entry>
@@ -710,6 +682,39 @@ lsass.exe -&gt; 认证</p>
 <p>bypass av可以以卡巴为衡量标准，能过卡巴约等于过全部。</p>
 <p>所以文件最终文件放在：</p>
 <p>https://github.com/TheKingOfDuck/hashdump</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ApkAnalyser：一键提取安卓应用中可能存在的敏感信息。]]></title>
+        <id>https://thekingofduck.github.io/post/ApkAnalyser/</id>
+        <link href="https://thekingofduck.github.io/post/ApkAnalyser/">
+        </link>
+        <updated>2020-02-21T13:20:47.000Z</updated>
+        <content type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~<!-- more --></p>
+<p>项目地址：https://github.com/TheKingOfDuck/ApkAnalyser</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582291987982.png" alt="" loading="lazy"></figure>
+<p>目前提取了APK内:</p>
+<ul>
+<li>
+<p>所有字符串</p>
+</li>
+<li>
+<p>所以URLs</p>
+</li>
+<li>
+<p>所有ip</p>
+</li>
+<li>
+<p>可能是hash值的字符串</p>
+</li>
+<li>
+<p>存在的敏感词（如oss.aliyun）</p>
+</li>
+<li>
+<p>可能是accessKey的值</p>
+<p>使用Python开发，依赖于apkutils模块，可执行文件使用pyinstaller打包。</p>
+</li>
+</ul>
 ]]></content>
     </entry>
 </feed>
