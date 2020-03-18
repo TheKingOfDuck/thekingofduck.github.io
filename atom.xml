@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-18T15:09:23.153Z</updated>
+    <updated>2020-03-18T23:07:45.669Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,63 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[Patch Cobalt Strike 4.0]]></title>
+        <id>https://thekingofduck.github.io/post/Patch-Cobalt-Strike-4.0/</id>
+        <link href="https://thekingofduck.github.io/post/Patch-Cobalt-Strike-4.0/">
+        </link>
+        <updated>2020-03-18T22:56:21.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="patch-cobalt-strike-40">Patch Cobalt Strike 4.0</h1>
+<p>拿到得程序如下:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845637149700.jpg" alt="-w270" loading="lazy"></figure>
+<p>压缩包里面存在附一条启动命令：</p>
+<pre><code>java -XX:ParallelGCThreads=4 -XX:+AggressiveHeap -XX:+UseParallelGC -Xms512M -Xmx1024M -jar cobaltstrike.jar $*
+</code></pre>
+<p>启动报错：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845638463523.jpg" alt="-w320" loading="lazy"></figure>
+<p>这里的说的<code>authorization file</code>明显就是<code>cobaltstrike.auth</code>了</p>
+<p>简单搜一下：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845639620558.jpg" alt="-w476" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845665841791.jpg" alt="-w1323" loading="lazy"></figure>
+<p>把代码都复制过来，处理下报错：</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845665605145.jpg" alt="-w1586" loading="lazy"></figure>
+<p>调用：</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845666707405.jpg" alt="-w454" loading="lazy"></figure>
+<p>上来就先<code>Invalid authorization file</code>了<br>
+明显resources/authkey.pub没有加载过来。</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845671915765.jpg" alt="-w1527" loading="lazy"></figure>
+<p>改一下：</p>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845673713054.jpg" alt="-w1176" loading="lazy"></figure>
+<p>给出得密钥文件运行到这里就直接return结束了。</p>
+<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/2F39DF26-A29B-46EA-9F12-129C8D383DEB.png" alt="2F39DF26-A29B-46EA-9F12-129C8D383DEB" loading="lazy"></figure>
+<p>既然等于0就结束了，那么把这里得0修改成其他值是不是就可以了？(cs3就是这个破解思路)</p>
+<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845696379774.jpg" alt="-w316" loading="lazy"></figure>
+<p>明显是不得行的。在License方法中有校验：</p>
+<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845696241758.jpg" alt="-w907" loading="lazy"></figure>
+<p>checkLicenseGUI函数得第一个判断就是检测凭证是否有效。值来源于:</p>
+<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845698414371.jpg" alt="-w277" loading="lazy"></figure>
+<p>对应修改一下：</p>
+<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845699322770.jpg" alt="-w277" loading="lazy"></figure>
+<p>然后提示过期:</p>
+<figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845700315413.jpg" alt="-w483" loading="lazy"></figure>
+<p>懒人得做法：直接将这个判断删掉。</p>
+<figure data-type="image" tabindex="15"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845706501051.jpg" alt="-w1018" loading="lazy"></figure>
+<p>改完就可以直接进加载出UI来了。<br>
+<img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E.png" alt="67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E" loading="lazy"></p>
+<p>对应的也报了不少错误，并不能正常运行...说明还有多处校验了.</p>
+<p>这种动不动就删减代码的破解方式自然不是最佳方案。</p>
+<p>回归到：</p>
+<figure data-type="image" tabindex="16"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845710917584.jpg" alt="-w904" loading="lazy"></figure>
+<p>既然是因为密钥文件不对而导致的这里对比失败,那么直接硬写一条正确的结果进去即可:</p>
+<figure data-type="image" tabindex="17"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845712703919.jpg" alt="-w1007" loading="lazy"></figure>
+<p>比如：</p>
+<figure data-type="image" tabindex="18"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/C4C0BB95-040B-46B2-9C01-DE985474A38A.png" alt="C4C0BB95-040B-46B2-9C01-DE985474A38A" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845720512205.jpg" alt="-w1236" loading="lazy"></figure>
+<p>至于这个正确的结果如何拿到，就得感谢有花钱购买以及分享出来的师傅了基于白嫖的机会了。</p>
+<figure data-type="image" tabindex="20"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845719954394.jpg" alt="-w955" loading="lazy"></figure>
+<p>阿门，原谅我没钱只能白嫖了...</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[某APP逆向分析与通讯解密]]></title>
         <id>https://thekingofduck.github.io/post/Android-Program-Reverse-Analysis/</id>
@@ -682,39 +739,6 @@ lsass.exe -&gt; 认证</p>
 <p>bypass av可以以卡巴为衡量标准，能过卡巴约等于过全部。</p>
 <p>所以文件最终文件放在：</p>
 <p>https://github.com/TheKingOfDuck/hashdump</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[ApkAnalyser：一键提取安卓应用中可能存在的敏感信息。]]></title>
-        <id>https://thekingofduck.github.io/post/ApkAnalyser/</id>
-        <link href="https://thekingofduck.github.io/post/ApkAnalyser/">
-        </link>
-        <updated>2020-02-21T13:20:47.000Z</updated>
-        <content type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~<!-- more --></p>
-<p>项目地址：https://github.com/TheKingOfDuck/ApkAnalyser</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582291987982.png" alt="" loading="lazy"></figure>
-<p>目前提取了APK内:</p>
-<ul>
-<li>
-<p>所有字符串</p>
-</li>
-<li>
-<p>所以URLs</p>
-</li>
-<li>
-<p>所有ip</p>
-</li>
-<li>
-<p>可能是hash值的字符串</p>
-</li>
-<li>
-<p>存在的敏感词（如oss.aliyun）</p>
-</li>
-<li>
-<p>可能是accessKey的值</p>
-<p>使用Python开发，依赖于apkutils模块，可执行文件使用pyinstaller打包。</p>
-</li>
-</ul>
 ]]></content>
     </entry>
 </feed>
