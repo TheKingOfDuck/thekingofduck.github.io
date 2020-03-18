@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-18T23:11:31.814Z</updated>
+    <updated>2020-03-18T23:24:54.876Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -46,7 +46,7 @@
 <p>checkLicenseGUI函数得第一个判断就是检测凭证是否有效。值来源于:</p>
 <figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845698414371.jpg" alt="-w277" loading="lazy"></figure>
 <p>对应修改一下：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845699322770.jpg" alt="-w277" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845737520463.jpg" alt="-w277" loading="lazy"></figure>
 <p>然后提示过期:</p>
 <figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845700315413.jpg" alt="-w483" loading="lazy"></figure>
 <p>懒人得做法：直接将这个判断删掉。</p>
