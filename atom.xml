@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-03-19T03:42:40.354Z</updated>
+    <updated>2020-03-19T04:02:20.876Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -65,6 +65,7 @@
 <figure data-type="image" tabindex="20"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845719954394.jpg" alt="-w955" loading="lazy"></figure>
 <p>去除exit暗桩：</p>
 <figure data-type="image" tabindex="21"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/1.png" alt="-w955" loading="lazy"></figure>
+<p>指纹似乎不存在，listener问题也不存在。</p>
 <p>阿门，原谅我没钱只能白嫖了...</p>
 ]]></content>
     </entry>
