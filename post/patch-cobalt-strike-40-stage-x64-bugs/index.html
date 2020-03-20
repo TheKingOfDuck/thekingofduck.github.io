@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>Patch Cobalt Strike 4.0 | CoolCat&#39; Blog</title>	
+<title>Patch Cobalt Strike 4.0 Stage X64 Bugs | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/Patch-Cobalt-Strike-4.0.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/Patch-Cobalt-Strike-40-Stage-X64-Bugs.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">Patch Cobalt Strike 4.0</h1>
+			<h1 class="wow swing entry-title">Patch Cobalt Strike 4.0 Stage X64 Bugs</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-19 06:56:21" itemprop="datePublished" pubdate="">2020-03-19</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-20 17:12:05" itemprop="datePublished" pubdate="">2020-03-20</time></i>
 	          </div>
 			
 </span>
@@ -165,61 +165,38 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>拿到得程序如下:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845637149700.jpg" alt="-w270" loading="lazy"></figure>
-<p>压缩包里面存在附一条启动命令：</p>
-<pre><code>java -XX:ParallelGCThreads=4 -XX:+AggressiveHeap -XX:+UseParallelGC -Xms512M -Xmx1024M -jar cobaltstrike.jar $*
+				<p>根据出问题的地方<code>Use x64 payload</code>,也就是stage x64生成的exe无法正常运行，跟到:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846865680139.jpg" alt="-w1532" loading="lazy"></figure>
+<pre><code>boolean bool1 = DialogUtils.bool(this.options, &quot;x64&quot;);
 </code></pre>
-<p>启动报错：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845638463523.jpg" alt="-w320" loading="lazy"></figure>
-<p>这里的说的<code>authorization file</code>明显就是<code>cobaltstrike.auth</code>了</p>
-<p>简单搜一下：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845639620558.jpg" alt="-w476" loading="lazy"></figure>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845665841791.jpg" alt="-w1323" loading="lazy"></figure>
-<p>把代码都复制过来，处理下报错：</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845665605145.jpg" alt="-w1586" loading="lazy"></figure>
-<p>调用：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845666707405.jpg" alt="-w454" loading="lazy"></figure>
-<p>上来就先<code>Invalid authorization file</code>了<br>
-明显resources/authkey.pub没有加载过来。</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845671915765.jpg" alt="-w1527" loading="lazy"></figure>
-<p>改一下：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845673713054.jpg" alt="-w1176" loading="lazy"></figure>
-<p>给出得密钥文件运行到这里就直接return结束了。</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/2F39DF26-A29B-46EA-9F12-129C8D383DEB.png" alt="2F39DF26-A29B-46EA-9F12-129C8D383DEB" loading="lazy"></figure>
-<p>既然等于0就结束了，那么把这里得0修改成其他值是不是就可以了？(cs3就是这个破解思路)</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845696379774.jpg" alt="-w316" loading="lazy"></figure>
-<p>明显是不得行的。在License方法中有校验：</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845696241758.jpg" alt="-w907" loading="lazy"></figure>
-<p>checkLicenseGUI函数得第一个判断就是检测凭证是否有效。值来源于:</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845698414371.jpg" alt="-w277" loading="lazy"></figure>
-<p>对应修改一下：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845737520463.jpg" alt="-w277" loading="lazy"></figure>
-<p>然后提示过期:</p>
-<figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845700315413.jpg" alt="-w483" loading="lazy"></figure>
-<p>懒人得做法：直接将这个判断删掉。</p>
-<figure data-type="image" tabindex="15"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845706501051.jpg" alt="-w1018" loading="lazy"></figure>
-<p>改完就可以直接进加载出UI来了。<br>
-<img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E.png" alt="67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E" loading="lazy"></p>
-<p>对应的也报了不少错误，并不能正常运行...说明还有多处校验了.</p>
-<p>这种动不动就删减代码的破解方式自然不是最佳方案。</p>
-<p>回归到：</p>
-<figure data-type="image" tabindex="16"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845710917584.jpg" alt="-w904" loading="lazy"></figure>
-<p>既然是因为密钥文件不对而导致的这里对比失败,那么直接硬写一条正确的结果进去即可:</p>
-<figure data-type="image" tabindex="17"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845712703919.jpg" alt="-w1007" loading="lazy"></figure>
-<p>比如：</p>
-<figure data-type="image" tabindex="18"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/C4C0BB95-040B-46B2-9C01-DE985474A38A.png" alt="C4C0BB95-040B-46B2-9C01-DE985474A38A" loading="lazy"></figure>
-<figure data-type="image" tabindex="19"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845720512205.jpg" alt="-w1236" loading="lazy"></figure>
-<p>至于这个正确的结果如何拿到，就得感谢有花钱购买以及分享出来的师傅了给予白嫖的机会了。</p>
-<figure data-type="image" tabindex="20"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/15845719954394.jpg" alt="-w955" loading="lazy"></figure>
-<p>去除exit暗桩：</p>
-<figure data-type="image" tabindex="21"><img src="https://thekingofduck.github.io/post-images/cs4/15845636285780/1.png" alt="-w955" loading="lazy"></figure>
-<p>指纹似乎不存在，listener问题也不存在。</p>
-<p>阿门，原谅我没钱只能白嫖了...</p>
+<p>如果x64被选择则进入x64生成。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846867392378.jpg" alt="-w1037" loading="lazy"></figure>
+<p>通过代码对比会发现调用的函数都没啥区别。</p>
+<pre><code>new ArtifactUtils(this.client).patchArtifact(this.stager, &quot;artifact64.exe&quot;, paramString);
+</code></pre>
+<p>跟过来发现两个<code>patchArtifact</code>的重载方法：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846873782080.jpg" alt="-w827" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846874079370.jpg" alt="-w886" loading="lazy"></figure>
+<p>可以发现，整个过程中都没有涉及到传递<code>stage</code>的架构,基本即可以断定和这中间环节没关系了。</p>
+<p>继续跟到最终环节:</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846898933890.jpg" alt="-w946" loading="lazy"></figure>
+<p>细节出来了有没有：</p>
+<pre><code>this.stager = ListenerUtils.getListener(this.client, str1).getPayloadStager(&quot;x86&quot;);
+</code></pre>
+<p>明显官方将<code>stage</code>固定在了x86的,所以把x64的payload写进来自然就不对了。</p>
+<p><strong>验证</strong></p>
+<p>将86修改为64：</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846900913944.jpg" alt="-w843" loading="lazy"></figure>
+<p>重新打包运行：</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
+<p>至于完整的代码怎么调整,就自己考虑咯...</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
+				<a href="https://thekingofduck.github.io/tag/GHLIsUMcG/" rel="tag">fix bugs</a>	
+				 
 				<a href="https://thekingofduck.github.io/tag/8MD0VOcm6/" rel="tag">cobaltstrike4.0</a>	
 				 
 				<a href="https://thekingofduck.github.io/tag/z0NOXetWgT/" rel="tag">patch</a>	
@@ -229,10 +206,8 @@ window.onload=getCSS();
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/patch-cobalt-strike-40-stage-x64-bugs/" rel="prev"> Patch Cobalt Strike 4.0 Stage X64 Bugs</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/Android-Program-Reverse-Analysis/" rel="next"> 某APP逆向分析与通讯解密</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/Patch-Cobalt-Strike-4.0/" rel="next"> Patch Cobalt Strike 4.0</a></div>
 		
 		</div>
 	</nav>
