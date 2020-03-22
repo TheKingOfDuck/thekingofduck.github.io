@@ -180,7 +180,7 @@ c0ny1师傅写的<a href="https://github.com/c0ny1/jsEncrypter">jsEncrypter</a>�
 <figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/B43B9A52-8508-4CC2-B058-C06AB5D5B79D.png" alt="B43B9A52-8508-4CC2-B058-C06AB5D5B79D" loading="lazy"></figure>
 <p>是不是很简单...</p>
 <p>再说说开发过程中遇到的最大的坑。</p>
-<p>在代码中调试时使用<code>System.getProperty(&quot;user.dir&quot;)</code>获取当前路径时完全OK的,但是加载到内存后再获取就会编程：</p>
+<p>在代码中调试时使用<code>System.getProperty(&quot;user.dir&quot;)</code>获取当前路径时完全OK的,但是加载到内存后再获取就会变成：</p>
 <pre><code>/var/folders/tg/z5wcq7jx3s526hykwz0pz2v00000gp/T/burp8120677802571630018.tmp/22js/
 </code></pre>
 <p>导致遍历<code>js</code>文件一致失败。</p>
