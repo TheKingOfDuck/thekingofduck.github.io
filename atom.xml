@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-04-11T12:04:38.326Z</updated>
+    <updated>2020-04-11T12:07:02.634Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -22,7 +22,9 @@
 <!-- more -->
 <p>项目地址：<a href="https://github.com/TheKingOfDuck/JoomlaCracker">https://github.com/TheKingOfDuck/JoomlaCracker</a></p>
 <figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1586606413161.png" alt="" loading="lazy"></figure>
-<p>使用Java开发，自动提取域名要素，debug在115行设置setProxy(true)即可;。</p>
+<p>使用Java开发，自动提取域名要素，debug在115行设置setProxy(true)即可。</p>
+<p>一点点心得：<br>
+Joomla和Dede性质差不多，99%的洞都是建立在有后台权限/低用户权限的情况下才能利用，谁日谁知道...</p>
 ]]></content>
     </entry>
     <entry>
