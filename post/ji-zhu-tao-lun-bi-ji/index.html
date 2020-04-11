@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>重写一个burpJsEncrypter | CoolCat&#39; Blog</title>	
+<title>技术讨论笔记 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -63,8 +63,6 @@ window.onload=getCSS();
         
 			
 		<header id="header" class="site-header" 
-		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ReCode-A-BurpJsEncrypter.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +152,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">重写一个burpJsEncrypter</h1>
+			<h1 class="wow swing entry-title">技术讨论笔记</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-22 19:05:56" itemprop="datePublished" pubdate="">2020-03-22</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-03-28 09:40:13" itemprop="datePublished" pubdate="">2020-03-28</time></i>
 	          </div>
 			
 </span>
@@ -165,59 +163,17 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>Github:<a href="https://github.com/TheKingOfDuck/burpJsEncrypter">https://github.com/TheKingOfDuck/burpJsEncrypter</a></p>
-<!-- more -->
-<h3 id="写在前面">写在前面</h3>
-<p>先说说这个项目为什么会出现。<br>
-c0ny1师傅写的<a href="https://github.com/c0ny1/jsEncrypter">jsEncrypter</a>其实已经能满足日常需求，我本人也是因为这个项目成为c0ny1师傅的&quot;粉丝&quot;的。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848722634917.jpg" alt="-w814" loading="lazy"></figure>
-<p>使用过的师傅都知道这个项目依赖于<code>phantomjs</code>,别人我不知道,我自己老是忘记<code>phantomjs</code>的二进制我放哪儿了,而且每次启动啥的都比较麻烦。</p>
-<p>在学习Java的过程中了解到官方在<code>JDK1.6</code>添加了新的<code>ScriptEngine</code>类,允许用户直接执行<code>js</code>代码,也就是说调用<code>phantomjs</code>这件事可以,但是没必要。</p>
-<h3 id="代码编写">代码编写</h3>
-<p>看看核心的实现方法：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/F1C1AFDB-4EE7-4AB7-86BE-FB54A7462B33.png" alt="F1C1AFDB-4EE7-4AB7-86BE-FB54A7462B33" loading="lazy"></figure>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/49ADE7CC-F87A-4EFF-A6DD-3A7AD5916D6F.png" alt="49ADE7CC-F87A-4EFF-A6DD-3A7AD5916D6F" loading="lazy"></figure>
-<p>调用了加载到内存中的<code>burpJsEncrypter</code>函数,代码如下：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/B43B9A52-8508-4CC2-B058-C06AB5D5B79D.png" alt="B43B9A52-8508-4CC2-B058-C06AB5D5B79D" loading="lazy"></figure>
-<p>是不是很简单...</p>
-<p>再说说开发过程中遇到的最大的坑。</p>
-<p>在代码中调试时使用<code>System.getProperty(&quot;user.dir&quot;)</code>获取当前路径时完全OK的,但是加载到内存后再获取就会变成：</p>
-<pre><code>/var/folders/tg/z5wcq7jx3s526hykwz0pz2v00000gp/T/burp8120677802571630018.tmp/22js/
-</code></pre>
-<p>导致遍历<code>js</code>文件一致失败。</p>
-<h3 id="如何使用">如何使用</h3>
-<p>1.将本项目的js目录下的<code>js</code>文件复制到用户目录下的<code>/burp/jsFile</code>目录:</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848732791664.jpg" alt="-w834" loading="lazy"></figure>
-<p>文件名咋命名完全无所谓,但是main.js中<code>burpJsEncrypter</code>函数一定要有,需要人工修改的加密逻辑也就是注释中间的内容：</p>
-<pre><code>//Java调用的主函数
-function burpJsEncrypter(rawPayload){
+				<p>2020.3.28 群技术讨论<br>
+主题: 安全方向的编程能力养成<br>
+方向：针对安全方向在编程领域技术栈的学习方向的建议，优质资源推荐。</p>
+<p>2020.3.27 APP抓包问题回顾<br>
+Wfox师傅提了一个很有用知识点：<br>
+在安卓抓包时经常会遇到SSL证书校验问题，很多app使用Xposed+JustTrustMe组合就能突破SSL Pinning，但还是有部分app没法突破校验，因为JustTrustMe本身有些bug导致不能抓包，我推荐是用JustMePlush。<br>
+我自己的经验：<br>
+使用虚拟vpn的方式也不错，安卓/IOS都有很多使用这个原理的工具，都能抓。昨天还和另一个师傅讨论了inspeckage这个工具，总体上来说功能设计很强大，可惜没继续维护，在高版本的安卓上起不到作用了。目前还是frida最强。</p>
+<pre><code>再说说逆向分析算法时反编译工具优逆的对比：jd-gui最老，但是反编译出来的代码可复制性最强，luyten反编译的代码可复制性很差，可以和jd-gui交叉使用，jadx的话反编译出来的代码错误的很多，但是便捷性最强，apk/dex/jar/class都支持，其他的还有jeb之类的也可以。
 
-	var encryptedPayload;
-
-
-	//===============加密开始=================
-
-	encryptedPayload = hex_md5(rawPayload);
-
-	//===============加密结束=================
-
-	return encryptedPayload;
-}
-</code></pre>
-<p>如上面的代码中的hex_md5函数是加载到内存中的其他js文件中的函数。实战中只需要把页面中所有涉及加密的js文件下载到这个目录即可。</p>
-<p>2.设置Payload处理：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/08B84570-D584-4265-9505-27D7F5821E24.png" alt="08B84570-D584-4265-9505-27D7F5821E24" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848737403466.jpg" alt="-w647" loading="lazy"></figure>
-<p>选完再开始爆破即可。</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848739154768.jpg" alt="-w973" loading="lazy"></figure>
-<p><strong>明文在哪儿看？</strong></p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848741045333.jpg" alt="-w628" loading="lazy"></figure>
-<p><strong>支持再Repeater中加密？</strong></p>
-<p>选中要加密的字段,右键选择<code>burpJsEncrypter</code>菜单即可。</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/burpJsEncrypter//15848705260967/15848741934886.jpg" alt="-w519" loading="lazy"></figure>
-<h3 id="重要提醒">重要提醒</h3>
-<p>如果c0ny1师傅那个插件你不会耍的画这个插件你估计也不会耍的,最核心的问题都是找页面中的加密逻辑,然后复制出来运行而已。</p>
-<p><strong>即兴开发，Enjoy it~~</strong></p>
+抛出两个问题：1.如何快速找到加密算法，或者Hook到明文包？(有无通用方式？)  2.如何实现 adb root?(也就是adb进去即root，非su的方式)</code></pre>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
@@ -227,11 +183,7 @@ function burpJsEncrypter(rawPayload){
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/JoomlaCracker/" rel="prev"> JoomlaCracker: JoomlaCracker CMS 批量爆破工具</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/patch-cobalt-strike-40-stage-x64-bugs/" rel="next"> Patch Cobalt Strike 4.0 Stage X64 Bugs</a></div>
-		
 		</div>
 	</nav>
 	<div class="wow rollIn author-info" style="visibility: visible; animation-name: rollIn;">
