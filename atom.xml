@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-04-11T12:07:02.634Z</updated>
+    <updated>2020-04-12T18:49:18.400Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,41 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[Copy2Java：在Burp中一键生成Java代码]]></title>
+        <id>https://thekingofduck.github.io/post/Copy2Java/</id>
+        <link href="https://thekingofduck.github.io/post/Copy2Java/">
+        </link>
+        <updated>2020-04-12T17:18:19.000Z</updated>
+        <content type="html"><![CDATA[<p>项目地址：<a href="https://github.com/TheKingOfDuck/Copy2Java">https://github.com/TheKingOfDuck/Copy2Java</a></p>
+<h3 id="0x01-初始化">0x01 初始化</h3>
+<p>先说说为什么要用Java写这个插件？为什么要生成的是Java的代码。</p>
+<p>1.简化安全从业者用Java写web漏洞利用工具的流程。</p>
+<p>2.其他语言有插件实现了，生成现成的JAVA代码可在强迫自己使用Java的同时也不会拉低效率。</p>
+<h3 id="0x02-加载中">0x02 加载中</h3>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413020409078.png" alt="image-20200413020409078" loading="lazy"></figure>
+<p>代码写完回头再看除了感觉辣鸡没什么太多其他感觉，过程中最麻烦的是画GUI，intellj拖控件有点恶心，eclipse拖好后再复制回intellj即可。在http发包方面目前用过的最方便的是HttpRequest，所以生成的代码依赖也选择它，打包在了项目的lib目录，导入即可。</p>
+<h3 id="0x02-加载成功">0x02 加载成功</h3>
+<p>使用:</p>
+<p>1.加载插件：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021026557.png" alt="image-20200413021026557" loading="lazy"></figure>
+<p>2.在burp的repeater中点击Copy2Java菜单：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021159116.png" alt="image-20200413021159116" loading="lazy"></figure>
+<p>3.设置是否开启代理【可选】：</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021244692.png" alt="image-20200413021244692" loading="lazy"></figure>
+<p>默认是不开代理的，没需要的话这部可以跳过。</p>
+<p>4.点击步骤3中弹出的窗口中的Copy to clipboard按钮复制代码并粘贴到ide:</p>
+<p>添加插件lib目录下的依赖包</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021640508.png" alt="image-20200413021640508" loading="lazy"></figure>
+<p>完成</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413022210153.png" alt="image-20200413022210153" loading="lazy"></figure>
+<p>如何高效的写一个web相关漏洞的利用工具？</p>
+<p>1.新建mvn项目，并将生成的代码复制进来。</p>
+<p>2.修改传入的参数，mvn package快速打包。</p>
+<p>比用Python写慢？不存在的！</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413022944759.png" alt="image-20200413022944759" loading="lazy"></figure>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[JoomlaCracker: JoomlaCracker CMS 批量爆破工具]]></title>
         <id>https://thekingofduck.github.io/post/JoomlaCracker/</id>
@@ -675,56 +710,6 @@ lsass.exe -&gt; 认证</p>
 <p>参考资料：</p>
 <p><a href="https://www.bilibili.com/video/av65934941?from=search&amp;seid=9042861733006388518">彻底理解Windows认证</a><br>
 <a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[域渗透学习笔记一：域环境的搭建]]></title>
-        <id>https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/</id>
-        <link href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/">
-        </link>
-        <updated>2020-03-01T22:50:43.000Z</updated>
-        <content type="html"><![CDATA[<p>域渗透从0开始重新学习的第一天。<br>
-台式机上是win10系统，VM里之前已经安装了2008和2012，再添加一台win7，计划用2012当域控，2008跑服务，win7做主要靶跳板。</p>
-<p>win7是刚刚装的比较干净的机器，2008上有360，2012上有卡巴。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583198313108.PNG" alt="" loading="lazy"></figure>
-<p>在2012上配置网络：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583198433041.PNG" alt="" loading="lazy"></figure>
-<p>本地抗不住同时开太多的机器，DNS服务器放到域控上，所以dns解析指向本机，其他机器的DNS也是指向这个IP。</p>
-<p>使用10.5.100.0/24这个段是因为学校内网用的这个段，日习惯了。。。</p>
-<p>修改计算机名：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583198849620.PNG" alt="" loading="lazy"></figure>
-<p>计算机名不能为存数字,修改为重启一下。</p>
-<p>在服务器管理的“添加角色与功能”菜单中中添加AD域名服务和DNS服务器两项功能。</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
-<p>选完一路点击下一步即可。</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583199504208.PNG" alt="" loading="lazy"></figure>
-<p>安装完关闭再点服务器管理就有下图：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583199627145.PNG" alt="" loading="lazy"></figure>
-<p>多了刚刚添加的两项功能。</p>
-<p>升级为2012为域控：</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583202560692.png" alt="" loading="lazy"></figure>
-<p>设置域：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583202843342.png" alt="" loading="lazy"></figure>
-<p>设置目录还原密码：</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1583202864621.png" alt="" loading="lazy"></figure>
-<p>一路下一步然后确认安装即可，中图会有感叹号提示无法创建该DNS服务器委派, 无关痛痒。</p>
-<p>安装完自动重启：</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1583203539677.png" alt="" loading="lazy"></figure>
-<p>已经需要域管理账号登录了；</p>
-<p>在AD用户管理中添加域用户账号：</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1583204864915.png" alt="" loading="lazy"></figure>
-<p>密码复杂度策略很狗，得设复杂点才行。</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1583205325297.png" alt="" loading="lazy"></figure>
-<p>将其他机器加入域：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1583206230232.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/1583206236247.png" alt="" loading="lazy"></figure>
-<p>其他机器加入都是一样的操作，至此域环境搭建完成。</p>
-<p>踩坑经验：家庭版系统无法加入域。</p>
-<p>参考文献：</p>
-<ul>
-<li><a href="https://www.cnblogs.com/jassa/p/10170386.html">AD域环境搭建</a></li>
-<li><a href="http://blog.sina.com.cn/s/blog_493cafbb0102wa5s.html">AD目录服务数据库还原模式密码</a></li>
-</ul>
 ]]></content>
     </entry>
 </feed>

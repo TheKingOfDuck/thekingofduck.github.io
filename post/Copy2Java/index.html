@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>JoomlaCracker: JoomlaCracker CMS 批量爆破工具 | CoolCat&#39; Blog</title>	
+<title>Copy2Java：在Burp中一键生成Java代码 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/JoomlaCracker.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/Copy2Java.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">JoomlaCracker: JoomlaCracker CMS 批量爆破工具</h1>
+			<h1 class="wow swing entry-title">Copy2Java：在Burp中一键生成Java代码</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-04-11 19:44:34" itemprop="datePublished" pubdate="">2020-04-11</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-04-13 01:18:19" itemprop="datePublished" pubdate="">2020-04-13</time></i>
 	          </div>
 			
 </span>
@@ -165,18 +165,40 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>✔️即兴开发，Enjoy it~~<!-- more --></p>
-<!-- more -->
-<p>项目地址：<a href="https://github.com/TheKingOfDuck/JoomlaCracker">https://github.com/TheKingOfDuck/JoomlaCracker</a></p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1586606413161.png" alt="" loading="lazy"></figure>
-<p>使用Java开发，自动提取域名要素，debug在115行设置setProxy(true)即可。</p>
-<p>一点点心得：<br>
-Joomla和Dede性质差不多，99%的洞都是建立在有后台权限/低用户权限的情况下才能利用，谁日谁知道...</p>
+				<p>项目地址：<a href="https://github.com/TheKingOfDuck/Copy2Java">https://github.com/TheKingOfDuck/Copy2Java</a></p>
+<h3 id="0x01-初始化">0x01 初始化</h3>
+<p>先说说为什么要用Java写这个插件？为什么要生成的是Java的代码。</p>
+<p>1.简化安全从业者用Java写web漏洞利用工具的流程。</p>
+<p>2.其他语言有插件实现了，生成现成的JAVA代码可在强迫自己使用Java的同时也不会拉低效率。</p>
+<h3 id="0x02-加载中">0x02 加载中</h3>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413020409078.png" alt="image-20200413020409078" loading="lazy"></figure>
+<p>代码写完回头再看除了感觉辣鸡没什么太多其他感觉，过程中最麻烦的是画GUI，intellj拖控件有点恶心，eclipse拖好后再复制回intellj即可。在http发包方面目前用过的最方便的是HttpRequest，所以生成的代码依赖也选择它，打包在了项目的lib目录，导入即可。</p>
+<h3 id="0x02-加载成功">0x02 加载成功</h3>
+<p>使用:</p>
+<p>1.加载插件：</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021026557.png" alt="image-20200413021026557" loading="lazy"></figure>
+<p>2.在burp的repeater中点击Copy2Java菜单：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021159116.png" alt="image-20200413021159116" loading="lazy"></figure>
+<p>3.设置是否开启代理【可选】：</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021244692.png" alt="image-20200413021244692" loading="lazy"></figure>
+<p>默认是不开代理的，没需要的话这部可以跳过。</p>
+<p>4.点击步骤3中弹出的窗口中的Copy to clipboard按钮复制代码并粘贴到ide:</p>
+<p>添加插件lib目录下的依赖包</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413021640508.png" alt="image-20200413021640508" loading="lazy"></figure>
+<p>完成</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413022210153.png" alt="image-20200413022210153" loading="lazy"></figure>
+<p>如何高效的写一个web相关漏洞的利用工具？</p>
+<p>1.新建mvn项目，并将生成的代码复制进来。</p>
+<p>2.修改传入的参数，mvn package快速打包。</p>
+<p>比用Python写慢？不存在的！</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/copy2java//image-20200413022944759.png" alt="image-20200413022944759" loading="lazy"></figure>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/3cO71LLYX/" rel="tag">java</a>	
+				<a href="https://thekingofduck.github.io/tag/z1Zu5D4Yj/" rel="tag">插件</a>	
+				 
+				<a href="https://thekingofduck.github.io/tag/IL13rQkiY/" rel="tag">burpsuite</a>	
 				 
 				<a href="https://thekingofduck.github.io/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
 				 
@@ -187,10 +209,8 @@ Joomla和Dede性质差不多，99%的洞都是建立在有后台权限/低用户
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/Copy2Java/" rel="prev"> Copy2Java：在Burp中一键生成Java代码</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ReCode-A-BurpJsEncrypter/" rel="next"> 重写一个burpJsEncrypter</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/JoomlaCracker/" rel="next"> JoomlaCracker: JoomlaCracker CMS 批量爆破工具</a></div>
 		
 		</div>
 	</nav>
