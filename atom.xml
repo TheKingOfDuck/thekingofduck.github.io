@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-04-12T18:50:11.826Z</updated>
+    <updated>2020-04-19T15:06:33.611Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,38 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[XSS-Fishing2-CS：钓鱼自动收杆指南]]></title>
+        <id>https://thekingofduck.github.io/post/XSS-Fishing2-CS/</id>
+        <link href="https://thekingofduck.github.io/post/XSS-Fishing2-CS/">
+        </link>
+        <updated>2020-04-19T14:23:30.000Z</updated>
+        <content type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~</p>
+<p>项目地址：<a href="https://github.com/TheKingOfDuck/XSS-Fishing2-CS">XSS-Fishing2-CS</a></p>
+<p>使用场景：使用xss弹窗提示钓鱼的时候会面临这样一个问题，如果鱼儿已经上线了，页面那边还在不停的弹窗，很容易引起鱼儿怀疑，权限说没就没了。</p>
+<h3 id="开发">开发</h3>
+<p>cs插件:<br>
+<img src="https://thekingofduck.github.io/post-images/fishing2.png" alt="" loading="lazy"></p>
+<p>没啥难度，都是照着官方函数库复制...魔性的是我的ubantu死活跑不起来，centos可以...</p>
+<p>php端：<br>
+<img src="https://thekingofduck.github.io/post-images/fishing1.png" alt="" loading="lazy"><br>
+都是基本 语法，基本逻辑，但是遇到一个有趣的弱类型问题：</p>
+<pre><code>fwrite(&quot;ips.txt&quot;, &quot;127.0.0.1&quot;);
+</code></pre>
+<p>写入的结果是127，之后的内容会被当做小点数被忽略掉，所以图中代码那个base64并非我闲着没事做...</p>
+<h3 id="使用">使用</h3>
+<p>1.将xss.php放到自己的服务器上去并修改第三行的钓鱼Payload。</p>
+<p>2.修改xssFisher.cna第4行中的企业微信机器人的密钥，第23行中的xss.php的实际地址。</p>
+<p>3.加载cs插件，将xss的Payload插入目标页面。</p>
+<h3 id="特点">特点</h3>
+<p>1.企业微信上线提示</p>
+<p>2.机器上线后立即停止钓鱼的弹窗</p>
+<p>3.只停止单个IP的弹窗，其他IP仍然可以继续弹窗，继续上线。</p>
+<h3 id="todo">TODO</h3>
+<p>1.特定网段上线的问题（？这个场景没有很清楚）<br>
+2.内网ip也判断下，避免出现多个目标在一个小的局域网共用一个外网IP，其中一台上线后其他机器就不弹窗了。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Copy2Java：在Burp中一键生成Java代码]]></title>
         <id>https://thekingofduck.github.io/post/Copy2Java/</id>
@@ -624,92 +656,6 @@ relay到 10.5.100.1 （2012）</p>
 <li>xxe/ssrf</li>
 <li>etc...</li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[域渗透学习笔记二：Windows认证机制Net-NTLM刨析]]></title>
-        <id>https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/</id>
-        <link href="https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/">
-        </link>
-        <updated>2020-03-02T04:09:31.000Z</updated>
-        <content type="html"><![CDATA[<p><strong>基础知识</strong></p>
-<p>1.Windows本地认证：</p>
-<p>认证的密码储存在SAM文件中，其位置为C:/Windows/system32/config/sam，词组security account manager,意思是安全账号管理器，其作用是对windows账户安全管理，类似于linux系统中的/etc/passwd文件,删除该文件即可删除账号密码。这也是PE破解系统密码的原理。</p>
-<p>登录认证是会从该文件读取里面的加密后的密码(NTLM hash)和用户输入的密码进行对比。</p>
-<p>NTLM hash生成流程如下：</p>
-<ul>
-<li>
-<p>将明文口令转换成十六进制的格式</p>
-</li>
-<li>
-<p>转换成Unicode格式，即在每个字节之后添加0x00</p>
-</li>
-<li>
-<p>对Unicode字符串作MD4加密，生成32位的十六进制数字串</p>
-<p>NTLM hash支持Net NTLM认证协议以及本地认证协议。其前身为LM Hash(LM算法脆弱，响应存在一些缺陷。主要出现在xp，03之下的系统)</p>
-</li>
-</ul>
-<p>Net-NTLM认证流程：</p>
-<ul>
-<li>协商：主要用于确认双方协议版本</li>
-<li>质询：就是挑战（Chalenge）/响应（Response）认证机制起作用的范畴。</li>
-<li>验证：验证主要是在质询完成后，验证结果，是认证的最后一步。</li>
-</ul>
-<p>质询的完整过程：</p>
-<ul>
-<li>1.客户端向服务器端发送用户信息(用户名)请求</li>
-<li>2.服务器接受到请求，生成一个16位的随机数，被称之为“Challenge”， 使用登录用户名对应的NTLM Hash加密Challenge(16位随机字符)， 生成Challenge1。生成一 个Net-NTLM Hash存在内存中，同时，生成Challenge1后，将Challenge(16位随机 字符)发送给客户端。</li>
-<li>3.客户端接受到Challenge后，使用将要登录到账户对应的NTLM Hash加密Challenge生成Response，然后将Response发送至服务器端。</li>
-</ul>
-<p>其中，经过NTLM Hash加密Challenge的结果在网络协议中称之为Net NTLM Hash。</p>
-<p>验证： 服务器端收到客户端的Response后，比对Chanllenge1与Response是否相等，若相等，则认证通过。</p>
-<p>注意:</p>
-<p>1.Chanllenge是Server产生的一个16字节的随机数，每次认证都不同<br>
-2.Response的表现形式是Net-NTLM Hash，它是由客户端 提供的密码Hash加密Server返回的Chanllenge产生的结果。<br>
-3.SMB走的也是Net-NTLM协议。</p>
-<p>以上属于Net-NTLM v2协议的详细流程<br>
-Net-NTLMv1的加密流程如下：</p>
-<ul>
-<li>1.客户端向服务器发送一个请求</li>
-<li>2.服务器接收到请求后，生成一个8位的Challenge，发送回客户端</li>
-<li>3.客户端接收到Challenge后，使用登录用户的密码hash对Challenge加密，作为response发送给服务器</li>
-<li>4.服务器校验response<br>
-两者的流程可以说是相同的，但加密算法不同，后者Net-NTLMv1相对脆弱</li>
-</ul>
-<p><strong>质询抓包分析</strong></p>
-<p>使用域户向域控共享目录发起请求，<br>
-<img src="https://thekingofduck.github.io/post-images/1583247680147.png" alt="" loading="lazy"></p>
-<p>在域用户机器上Wireshark抓包如下：</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583250718347.png" alt="" loading="lazy"></figure>
-<p>步骤上质询有四步,可以将其看为一发一收两个来回</p>
-<p>第一发：基础信息发送</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583250826048.png" alt="" loading="lazy"></figure>
-<p>第一收：获取对方生成并发过来的Challenge</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583250919881.png" alt="" loading="lazy"></figure>
-<p>第二发：将要登录到账户对应的NTLM Hash加密Challenge生成Response并发给服务器</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
-<p>第二收：服务器校验response并返回结果</p>
-<p><img src="https://thekingofduck.github.io/post-images/1583251428310.png" alt="" loading="lazy"><br>
-（登录成功）<br>
-<img src="https://thekingofduck.github.io/post-images/1583251781830.png" alt="" loading="lazy"><br>
-（登录失败）</p>
-<p>至此Net-NTLM协议通讯过程分析完成，也可以看到文章<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a>0x03 Net-NTLM hash中的分析是错误的。</p>
-<p>有个非常值得关注的点：</p>
-<ul>
-<li><strong>当用户进行涉及Net-NTLM认证的访问时系统默认会先将本地NTLM hash去走一遍Net-NTLM验证。</strong></li>
-</ul>
-<p>NTLM本地认证流程：</p>
-<blockquote>
-<p>winlogon.exe -&gt; 接收用户输入<br>
-lsass.exe -&gt; 认证</p>
-</blockquote>
-<hr>
-<p><strong>工作组认证和域环境认证的区别：</strong></p>
-<p>工作组：点对点交易，无法相互信任。<br>
-域环境：有信托机构(域)，相当于闲鱼卖东西需要闲鱼官方担保。</p>
-<p>参考资料：</p>
-<p><a href="https://www.bilibili.com/video/av65934941?from=search&amp;seid=9042861733006388518">彻底理解Windows认证</a><br>
-<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a></p>
 ]]></content>
     </entry>
 </feed>
