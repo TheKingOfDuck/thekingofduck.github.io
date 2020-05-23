@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>XSS-Fishing2-CS：钓鱼自动收杆指南 | CoolCat&#39; Blog</title>	
+<title>MatryoshkaDollTool-一款程序捆绑工具 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/XSS-Fishing2-CS.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/MatryoshkaDollTool.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">XSS-Fishing2-CS：钓鱼自动收杆指南</h1>
+			<h1 class="wow swing entry-title">MatryoshkaDollTool-一款程序捆绑工具</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-04-19 22:23:30" itemprop="datePublished" pubdate="">2020-04-19</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-05-23 23:33:32" itemprop="datePublished" pubdate="">2020-05-23</time></i>
 	          </div>
 			
 </span>
@@ -165,49 +165,43 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>✔️即兴开发，Enjoy it~~</p>
-<p>项目地址：<a href="https://github.com/TheKingOfDuck/XSS-Fishing2-CS">XSS-Fishing2-CS</a></p>
-<p>使用场景：使用xss弹窗提示钓鱼的时候会面临这样一个问题，如果鱼儿已经上线了，页面那边还在不停的弹窗，很容易引起鱼儿怀疑，权限说没就没了。</p>
-<h3 id="开发">开发</h3>
-<p>cs插件:<br>
-<img src="https://thekingofduck.github.io/post-images/fishing2.png" alt="" loading="lazy"></p>
-<p>没啥难度，都是照着官方函数库复制...魔性的是我的ubantu死活跑不起来，centos可以...</p>
-<p>php端：<br>
-<img src="https://thekingofduck.github.io/post-images/fishing1.png" alt="" loading="lazy"><br>
-都是基本 语法，基本逻辑，但是遇到一个有趣的弱类型问题：</p>
-<pre><code>fwrite(&quot;ips.txt&quot;, &quot;127.0.0.1&quot;);
-</code></pre>
-<p>写入的结果是127，之后的内容会被当做小点数被忽略掉，所以图中代码那个base64并非我闲着没事做...</p>
-<h3 id="使用">使用</h3>
-<p>1.将xss.php放到自己的服务器上去并修改第三行的钓鱼Payload。</p>
-<p>2.修改xssFisher.cna第4行中的企业微信机器人的密钥，第23行中的xss.php的实际地址。</p>
-<p>3.加载cs插件，将xss的Payload插入目标页面。</p>
-<h3 id="特点">特点</h3>
-<p>1.企业微信上线提示</p>
-<p>2.机器上线后立即停止钓鱼的弹窗</p>
-<p>3.只停止单个IP的弹窗，其他IP仍然可以继续弹窗，继续上线。</p>
-<h3 id="todo">TODO</h3>
-<p>1.特定网段上线的问题（？这个场景没有很清楚）<br>
-2.内网ip也判断下，避免出现多个目标在一个小的局域网共用一个外网IP，其中一台上线后其他机器就不弹窗了。</p>
+				<h3 id="what">WHAT</h3>
+<p>一款程序捆绑工具，取名MatryoshkaDollTool，也叫俄罗斯套娃工具。</p>
+<p>开源这个只有基础捆绑功能的版本，给套娃程序添加自启以及加密功能的版本哪天高兴了就开源。</p>
+<h3 id="why">WHY</h3>
+<p>找不到好用的没后门的捆绑工具所以自己动手写了。</p>
+<h3 id="how">HOW</h3>
+<figure data-type="image" tabindex="1"><img src="https://github.com/TheKingOfDuck/MatryoshkaDollTool/blob/master/img/screenshot.png" alt="" loading="lazy"></figure>
+<h3 id="where">WHERE</h3>
+<p>成品在bin目录下。</p>
+<h3 id="todo-list">TODO List</h3>
+<ul>
+<li>把目前的壳变成真壳。</li>
+<li>开放添加套娃的自启，加密。</li>
+</ul>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/P7LSJcbFD/" rel="tag">xss钓鱼</a>	
+				<a href="https://thekingofduck.github.io/tag/2tA5AVOQF/" rel="tag">MatryoshkaDollTool</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/FnlyuzFJtU/" rel="tag">php</a>	
+				<a href="https://thekingofduck.github.io/tag/FPNYNI7gKV/" rel="tag">程序捆绑</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/eeARnjQrum/" rel="tag">cobaltstrike插件</a>	
+				<a href="https://thekingofduck.github.io/tag/09pGl0XxJE/" rel="tag">C#</a>	
+				 
+				<a href="https://thekingofduck.github.io/tag/0eBxL3Digg/" rel="tag">俄罗斯套娃</a>	
+				 
+				<a href="https://thekingofduck.github.io/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
+				 
+				<a href="https://thekingofduck.github.io/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/MatryoshkaDollTool/" rel="prev"> MatryoshkaDollTool-一款程序捆绑工具</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/Copy2Java/" rel="next"> Copy2Java：在Burp中一键生成Java代码</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/XSS-Fishing2-CS/" rel="next"> XSS-Fishing2-CS：钓鱼自动收杆指南</a></div>
 		
 		</div>
 	</nav>
