@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>Copy2Yaml:一键生成yaml poc | CoolCat&#39; Blog</title>	
+<title>captcha-killer修改随笔 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/copy2yaml.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/recode-captcha-killer.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">Copy2Yaml:一键生成yaml poc</h1>
+			<h1 class="wow swing entry-title">captcha-killer修改随笔</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-06-28 00:38:24" itemprop="datePublished" pubdate="">2020-06-28</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-08-08 17:50:14" itemprop="datePublished" pubdate="">2020-08-08</time></i>
 	          </div>
 			
 </span>
@@ -165,33 +165,47 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>初次使用JavaFX，不得不说体验比swing强太多了。</p>
-<p>开发过程忘记了burp是swing画的GUI，调试卡了好久，难受啊。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1593276055852.jpg" alt="" loading="lazy"></figure>
-<p>对标xray的poc来开发的，虽然兼容但是不是写给xray用的。</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1593276097179.jpg" alt="" loading="lazy"></figure>
-<p>写了支持终端模式，burp插件模式，在或者直接打开复制粘贴数据包也是可以的，又是写bug的一天。</p>
+				<p>成品如下:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1596880625428.png" alt="" loading="lazy"></figure>
+<p>新增功能特性:<br>
+1.当验证码结果返回值非图标时，使用自定义正则匹配验证码位置。<br>
+2.当识别出匹配结果为图标时自动锁定正则输入框以及匹配按钮。<br>
+3.针对团队购买的识别接口返回值预设正则, etc...</p>
+<p>适应新场景：<br>
+requests:</p>
+<pre><code>GET /xxxx.ashx?op=getVerifyCodeImage HTTP/1.1
+Host: www.baidu.com
+</code></pre>
+<p>response:</p>
+<pre><code>{&quot;success&quot;:true,&quot;image&quot;:&quot;图标的base64值&quot;}
+</code></pre>
+<p>输入正则:</p>
+<pre><code>&quot;success&quot;:true,&quot;image&quot;:&quot;(.*?)&quot;
+</code></pre>
+<p>即可正常识别。</p>
+<p>修改过的位置<br>
+<img src="https://thekingofduck.github.io/post-images/1596881092380.png" alt="" loading="lazy"></p>
+<p>如图中代码所示，原作者提了一个burp自带的发包，无法指定超时这个问题，有趣的是自己印象中超时一直都是再Intruder的超时是可以在option中指定的。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1596881494055.jpeg" alt="" loading="lazy"></figure>
+<p>认真看了一下pause before retry和超时没半毛钱关系，一直以来都看错了...</p>
+<p>问题其实出在MorePayloads的判断上，原代码未判断是否有新的payload生成，直接无条件的返回true，这一来即便请请求第三方网站的识别结果尚未回来，burp也认为有新的Payload生成了，直接调自然就只能返回空了。</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/Axu8QL95z/" rel="tag">copy2yaml</a>	
+				<a href="https://thekingofduck.github.io/tag/Ne9IRaaaJ/" rel="tag">验证码识别</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/w3JF9H3h2A/" rel="tag">xray</a>	
+				<a href="https://thekingofduck.github.io/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/m_ColBiEh2/" rel="tag">xray POC生成</a>	
-				 
-				<a href="https://thekingofduck.github.io/tag/nTzw1JPmUD/" rel="tag">poc生成</a>	
+				<a href="https://thekingofduck.github.io/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/recode-captcha-killer/" rel="prev"> captcha-killer修改随笔</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/MatryoshkaDollTool/" rel="next"> MatryoshkaDollTool-一款程序捆绑工具</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/copy2yaml/" rel="next"> Copy2Yaml:一键生成yaml poc</a></div>
 		
 		</div>
 	</nav>

