@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://thekingofduck.github.io</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-01-31T11:53:04.375Z</updated>
+    <updated>2021-01-31T11:55:15.044Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://thekingofduck.github.io"/>
     <link rel="self" href="https://thekingofduck.github.io/atom.xml"/>
@@ -14,118 +14,6 @@
         <title type="html"><![CDATA[Loki - 一个轻量级Web蜜罐]]></title>
         <id>https://thekingofduck.github.io/post/loki-web-honeypot/</id>
         <link href="https://thekingofduck.github.io/post/loki-web-honeypot/">
-        </link>
-        <updated>2021-01-31T11:42:23.000Z</updated>
-        <content type="html"><![CDATA[<p>https://github.com/TheKingOfDuck/Loki</p>
-<h3 id="0x01-why">0x01 Why</h3>
-<p>目标: 抓漏洞.<br>
-大概是没有找到啥子开源的符合我预期的蜜罐吧，所以自己动手写了。</p>
-<h3 id="0x02-what">0x02 What</h3>
-<p>想做什么样的蜜罐?</p>
-<p>1.便于维护,随开随用,配置简单。<br>
-2.Web低仿真即可,且只抓Web流量。<br>
-3.不同端口指向不同的页面,响应头配置等。</p>
-<h3 id="0x03-how">0x03 How</h3>
-<p>SpringBoot是最强Web框架没有之一,数据库选用SQLite。两者结合基本上就可以实现一个jar加db文件就完成需求。</p>
-<h3 id="0x04-process">0x04 Process</h3>
-<p>管理页面选用layui作为前端框架,后台地址和端口以及账号密码通过配置文件动态配置。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1612093490242.jpg" alt="" loading="lazy"></figure>
-<p>多端口方便其实就是给tomcat添加几个监听的端口而已:</p>
-<pre><code>Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
-connector.setScheme(scheme);
-connector.setPort(Integer.parseInt(port));
-result.add(connector);
-</code></pre>
-<p>然后是不同端口指向不同页面:</p>
-<p>配置文件</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1612093569434.jpg" alt="" loading="lazy"></figure>
-<p>判断逻辑</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1612093585093.jpg" alt="" loading="lazy"></figure>
-<p>port是限制的端口,path是本地模板的路径,code是返回的状态码,header是相应的header,respbody本来是想正对一些特定的请求返回不同页面的,逻辑没有思考的很清楚,暂时搁置了。</p>
-<h4 id="页面捕获">页面捕获</h4>
-<p>过程比较耗时间,期初想拦截所有异常,在做统一处理即可,可实际过程发现springboot默认开起了add-mappings无法捕获404页面,而且静态资源过来的请求无法捕获,如果遇到解析差异那种洞就只能错过。关闭的话静态资源访问配置又会很麻烦。</p>
-<p>查阅相关文档后发现可以继承  ErrorController + @ControllerAdvice + @ExceptionHandle 处理一切异常,这也包括404页面,</p>
-<p>Demo:</p>
-<pre><code>NotFoundController.java
-
-@Controller
-public class NotFoundController implements ErrorController {
- 
-    @Override
-    public String getErrorPath() {
-        return &quot;/error&quot;;
-    }
-    @RequestMapping(value = {&quot;/error&quot;})
-    public Object error(HttpServletRequest request) {
-        //请求处理
-        return &quot;404&quot;;
-    }
-}
-</code></pre>
-<pre><code>ExceptionController.java
-
-@ControllerAdvice
-public class ExceptionController {
- 
-    @ExceptionHandler(value = {Exception.class})
-    public Object error(Exception ex){
-        //请求处理
-        return &quot;500&quot;;
-    }
-}
-</code></pre>
-<p>这也处理确实能捕获到404页面,可是有个bug</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1612093604938.jpg" alt="" loading="lazy"></figure>
-<p>getServletPath方法获取的路由恒为error,这也是springboot的特征之一,所有错误均会交由error路由处理,也就是说error默认是肯定存在的。</p>
-<p>正确的处理方式是在过滤器中进行记录:</p>
-<pre><code>public class LokiFilter implements Filter{
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        log.info(&quot;Loki Filter is init.... &quot;);
-    }
-
-    @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) servletRequest;
-        //请求处理
-        filterChain.doFilter(request, response);
-    }
-
-    @Override
-    public void destroy() {
-        log.info(&quot;Loki Filter was destroyed....&quot;);
-    }
-}
-</code></pre>
-<p>嗯,内存马也得在这层搞,不然鬼知道别人路由咋写的。</p>
-<h3 id="0x05-result">0x05 Result</h3>
-<p>代码结构:</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1612093623129.png" alt="" loading="lazy"></figure>
-<p>后台页面:</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1612093636730.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1612093761078.png" alt="" loading="lazy"></figure>
-<p>模板文件:</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1612093774985.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1612093789285.jpg" alt="" loading="lazy"></figure>
-<p>一些有趣的事情:</p>
-<p>1.在公网跑起来后我收到的第一个请求是nmap扫cobaltstrike的。</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1612093806150.png" alt="" loading="lazy"></figure>
-<p>2.配置的通达和致远的页面都被来自河南和云南的两个IP人为访问过两次,识别依据是浏览器会自动加载/favicon.ico,脚本不会。</p>
-<p>3.被89.248.160.151这个IP扫了一通.txt的文件,还有一些请求路径是@.txt,不知道是不是扫描器没配好。</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1612093827620.png" alt="" loading="lazy"></figure>
-<p>4.创宇的censys爬虫先是先访问了8090端口,然后是88端口,中间间隔了将近14小时,bing的爬虫也到访过一次,fofa的爬虫没看到,但是有上百条ua为Go-http-client/1.1和fasthttp的请求,python的只有一条。</p>
-<p>5.捕获了两个漏洞:</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1612093839683.jpg" alt="" loading="lazy"></figure>
-<p>搜索了一下应该是Linksys路由的命令注入.</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1612093860509.png" alt="" loading="lazy"></figure>
-<p>看起来是未授权相关的漏洞,80端口配置了很低从其他蜜罐上扒下来的Server头,可能是其中一款产品的洞吧,涉及的产品太多,百度没搜到这个路由,无法验证了。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Loki - 一个轻量级Web蜜罐]]></title>
-        <id>https://thekingofduck.github.io/post/loki-yi-ge-qing-liang-ji-web-mi-guan/</id>
-        <link href="https://thekingofduck.github.io/post/loki-yi-ge-qing-liang-ji-web-mi-guan/">
         </link>
         <updated>2021-01-31T11:42:23.000Z</updated>
         <content type="html"><![CDATA[<p>https://github.com/TheKingOfDuck/Loki</p>
@@ -533,6 +421,40 @@ function burpJsEncrypter(rawPayload){
 <h3 id="重要提醒">重要提醒</h3>
 <p>如果c0ny1师傅那个插件你不会耍的画这个插件你估计也不会耍的,最核心的问题都是找页面中的加密逻辑,然后复制出来运行而已。</p>
 <p><strong>即兴开发，Enjoy it~~</strong></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Patch Cobalt Strike 4.0 Stage X64 Bugs]]></title>
+        <id>https://thekingofduck.github.io/post/patch-cobalt-strike-40-stage-x64-bugs/</id>
+        <link href="https://thekingofduck.github.io/post/patch-cobalt-strike-40-stage-x64-bugs/">
+        </link>
+        <updated>2020-03-20T09:12:05.000Z</updated>
+        <content type="html"><![CDATA[<p>根据出问题的地方<code>Use x64 payload</code>,也就是stage x64生成的exe无法正常运行，跟到:</p>
+<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846865680139.jpg" alt="-w1532" loading="lazy"></figure>
+<pre><code>boolean bool1 = DialogUtils.bool(this.options, &quot;x64&quot;);
+</code></pre>
+<p>如果x64被选择则进入x64生成。</p>
+<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846867392378.jpg" alt="-w1037" loading="lazy"></figure>
+<p>通过代码对比会发现调用的函数都没啥区别。</p>
+<pre><code>new ArtifactUtils(this.client).patchArtifact(this.stager, &quot;artifact64.exe&quot;, paramString);
+</code></pre>
+<p>跟过来发现两个<code>patchArtifact</code>的重载方法：</p>
+<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846873782080.jpg" alt="-w827" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846874079370.jpg" alt="-w886" loading="lazy"></figure>
+<p>可以发现，整个过程中都没有涉及到传递<code>stage</code>的架构,基本即可以断定和这中间环节没关系了。</p>
+<p>继续跟到最终环节:</p>
+<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846898933890.jpg" alt="-w946" loading="lazy"></figure>
+<p>细节出来了有没有：</p>
+<pre><code>this.stager = ListenerUtils.getListener(this.client, str1).getPayloadStager(&quot;x86&quot;);
+</code></pre>
+<p>明显官方将<code>stage</code>固定在了x86的,所以把x64的payload写进来自然就不对了。</p>
+<p><strong>验证</strong></p>
+<p>将86修改为64：</p>
+<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846900913944.jpg" alt="-w843" loading="lazy"></figure>
+<p>重新打包运行：</p>
+<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
+<p>至于完整的代码怎么调整,就自己考虑咯...</p>
 ]]></content>
     </entry>
 </feed>
