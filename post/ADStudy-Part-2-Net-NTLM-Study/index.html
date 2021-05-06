@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-2-Net-NTLM-Study.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ADStudy-Part-2-Net-NTLM-Study.png)"
 		
 		>
 			<div class="site-branding">
@@ -211,20 +211,20 @@ Net-NTLMv1的加密流程如下：</p>
 </ul>
 <p><strong>质询抓包分析</strong></p>
 <p>使用域户向域控共享目录发起请求，<br>
-<img src="https://thekingofduck.github.io/post-images/1583247680147.png" alt="" loading="lazy"></p>
+<img src="https://blog.thekingofduck.com/post-images/1583247680147.png" alt="" loading="lazy"></p>
 <p>在域用户机器上Wireshark抓包如下：</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583250718347.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1583250718347.png" alt="" loading="lazy"></figure>
 <p>步骤上质询有四步,可以将其看为一发一收两个来回</p>
 <p>第一发：基础信息发送</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583250826048.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1583250826048.png" alt="" loading="lazy"></figure>
 <p>第一收：获取对方生成并发过来的Challenge</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583250919881.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1583250919881.png" alt="" loading="lazy"></figure>
 <p>第二发：将要登录到账户对应的NTLM Hash加密Challenge生成Response并发给服务器</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583251221865.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1583251221865.png" alt="" loading="lazy"></figure>
 <p>第二收：服务器校验response并返回结果</p>
-<p><img src="https://thekingofduck.github.io/post-images/1583251428310.png" alt="" loading="lazy"><br>
+<p><img src="https://blog.thekingofduck.com/post-images/1583251428310.png" alt="" loading="lazy"><br>
 （登录成功）<br>
-<img src="https://thekingofduck.github.io/post-images/1583251781830.png" alt="" loading="lazy"><br>
+<img src="https://blog.thekingofduck.com/post-images/1583251781830.png" alt="" loading="lazy"><br>
 （登录失败）</p>
 <p>至此Net-NTLM协议通讯过程分析完成，也可以看到文章<a href="https://xz.aliyun.com/t/1943">NTLM hash和Net-NTLM hash介绍</a>0x03 Net-NTLM hash中的分析是错误的。</p>
 <p>有个非常值得关注的点：</p>
@@ -247,19 +247,19 @@ lsass.exe -&gt; 认证</p>
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/fZyhXM0T7/" rel="tag">NTLM协议</a>	
+				<a href="https://blog.thekingofduck.com/tag/fZyhXM0T7/" rel="tag">NTLM协议</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
+				<a href="https://blog.thekingofduck.com/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/" rel="prev"> 域渗透学习笔记三：攻击NTLM</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-3-Attack-NTLM/" rel="prev"> 域渗透学习笔记三：攻击NTLM</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-1-AD-Install/" rel="next"> 域渗透学习笔记一：域环境的搭建</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-1-AD-Install/" rel="next"> 域渗透学习笔记一：域环境的搭建</a></div>
 		
 		</div>
 	</nav>

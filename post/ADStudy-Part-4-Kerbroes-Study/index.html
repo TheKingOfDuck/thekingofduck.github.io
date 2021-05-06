@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-4-Kerbroes-Study.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ADStudy-Part-4-Kerbroes-Study.png)"
 		
 		>
 			<div class="site-branding">
@@ -167,7 +167,7 @@ window.onload=getCSS();
 			<div class="wow slideInLeft entry-summary song">
 				<h3 id="基础知识">基础知识</h3>
 <p>Active Directory 活动目录，可以将其理解就是域服务。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
 <p>负责域内机器管理，用户管理，资源管理，桌面配置，应用支撑等等。</p>
 <p><strong>Kerbroes的特点：</strong></p>
 <ul>
@@ -221,20 +221,20 @@ window.onload=getCSS();
 <ul>
 <li>AS-REQ：</li>
 </ul>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583301307789.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1583301307789.png" alt="" loading="lazy"></figure>
 <p>Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳</p>
 <p>AS-REP</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583301478916.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1583301478916.png" alt="" loading="lazy"></figure>
 <p>KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据</p>
 <p><strong>TGS获取</strong></p>
 <p>TGS-REQ</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583302306281.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1583302306281.png" alt="" loading="lazy"></figure>
 <p>请求访问指定服务</p>
 <p>TGT-REP</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583302418203.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/1583302418203.png" alt="" loading="lazy"></figure>
 <p>返回Ticket。(这里没分析清楚)</p>
 <p><strong>TGS登录服务</strong></p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583303413428.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/1583303413428.png" alt="" loading="lazy"></figure>
 <p>涉及字段比较多，每个字段得含义分析不清楚，查阅资料可以看到详细流程如下：</p>
 <pre><code>AS_REQ: Client向KDC发起AS_REQ,请求凭据是Client hash加密的时间戳
 AS_REP: KDC使用Client hash进行解密，如果结果正确就返回用krbtgt hash加密的TGT票据，TGT里面包含PAC,PAC包含Client的sid，Client所在的组。
@@ -252,19 +252,19 @@ AP_REP: 服务使用自己的hash解密TGS票据。如果解密正确，就拿�
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/Y_4h0VKM4/" rel="tag">Kerbroes</a>	
+				<a href="https://blog.thekingofduck.com/tag/Y_4h0VKM4/" rel="tag">Kerbroes</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
+				<a href="https://blog.thekingofduck.com/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/" rel="prev"> 域渗透学习笔记五：攻击Kerbroes</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-5-Attack-Kerbroes/" rel="prev"> 域渗透学习笔记五：攻击Kerbroes</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-3-Attack-NTLM/" rel="next"> 域渗透学习笔记三：攻击NTLM</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-3-Attack-NTLM/" rel="next"> 域渗透学习笔记三：攻击NTLM</a></div>
 		
 		</div>
 	</nav>

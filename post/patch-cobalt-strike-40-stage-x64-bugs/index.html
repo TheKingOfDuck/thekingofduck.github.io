@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/Patch-Cobalt-Strike-40-Stage-X64-Bugs.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/Patch-Cobalt-Strike-40-Stage-X64-Bugs.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -166,50 +166,50 @@ window.onload=getCSS();
                   
 			<div class="wow slideInLeft entry-summary song">
 				<p>根据出问题的地方<code>Use x64 payload</code>,也就是stage x64生成的exe无法正常运行，跟到:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846865680139.jpg" alt="-w1532" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846865680139.jpg" alt="-w1532" loading="lazy"></figure>
 <pre><code>boolean bool1 = DialogUtils.bool(this.options, &quot;x64&quot;);
 </code></pre>
 <p>如果x64被选择则进入x64生成。</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846867392378.jpg" alt="-w1037" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846867392378.jpg" alt="-w1037" loading="lazy"></figure>
 <p>通过代码对比会发现调用的函数都没啥区别。</p>
 <pre><code>new ArtifactUtils(this.client).patchArtifact(this.stager, &quot;artifact64.exe&quot;, paramString);
 </code></pre>
 <p>跟过来发现两个<code>patchArtifact</code>的重载方法：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846873782080.jpg" alt="-w827" loading="lazy"></figure>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846874079370.jpg" alt="-w886" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846873782080.jpg" alt="-w827" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846874079370.jpg" alt="-w886" loading="lazy"></figure>
 <p>可以发现，整个过程中都没有涉及到传递<code>stage</code>的架构,基本即可以断定和这中间环节没关系了。</p>
 <p>继续跟到最终环节:</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846898933890.jpg" alt="-w946" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846898933890.jpg" alt="-w946" loading="lazy"></figure>
 <p>细节出来了有没有：</p>
 <pre><code>this.stager = ListenerUtils.getListener(this.client, str1).getPayloadStager(&quot;x86&quot;);
 </code></pre>
 <p>明显官方将<code>stage</code>固定在了x86的,所以把x64的payload写进来自然就不对了。</p>
 <p><strong>验证</strong></p>
 <p>将86修改为64：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846900913944.jpg" alt="-w843" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846900913944.jpg" alt="-w843" loading="lazy"></figure>
 <p>重新打包运行：</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
 <p>至于完整的代码怎么调整,就自己考虑咯...</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/GHLIsUMcG/" rel="tag">fix bugs</a>	
+				<a href="https://blog.thekingofduck.com/tag/GHLIsUMcG/" rel="tag">fix bugs</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/8MD0VOcm6/" rel="tag">cobaltstrike4.0</a>	
+				<a href="https://blog.thekingofduck.com/tag/8MD0VOcm6/" rel="tag">cobaltstrike4.0</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/z0NOXetWgT/" rel="tag">patch</a>	
+				<a href="https://blog.thekingofduck.com/tag/z0NOXetWgT/" rel="tag">patch</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ReCode-A-BurpJsEncrypter/" rel="prev"> 重写一个burpJsEncrypter</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ReCode-A-BurpJsEncrypter/" rel="prev"> 重写一个burpJsEncrypter</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/Patch-Cobalt-Strike-4.0/" rel="next"> Patch Cobalt Strike 4.0</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/Patch-Cobalt-Strike-4.0/" rel="next"> Patch Cobalt Strike 4.0</a></div>
 		
 		</div>
 	</nav>

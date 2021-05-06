@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/Android-Program-Reverse-Analysis.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/Android-Program-Reverse-Analysis.png)"
 		
 		>
 			<div class="site-branding">
@@ -167,9 +167,9 @@ window.onload=getCSS();
 			<div class="wow slideInLeft entry-summary song">
 				<h3 id="0x01-初始化">0x01 初始化</h3>
 <p>年轻人，你是否因看到这样的逆向结果而感到无力？</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/26DD303B-1B36-49D7-9A00-CD772B7556C9.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/26DD303B-1B36-49D7-9A00-CD772B7556C9.png" alt="" loading="lazy"></figure>
 <p>你是否为抓不到包而感觉渗透失去了意义？</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844200931687.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844200931687.jpg" alt="" loading="lazy"></figure>
 <p>回归正题，拿到app后初步了解后有下面几个问题：</p>
 <ul>
 <li>无法抓包</li>
@@ -183,7 +183,7 @@ window.onload=getCSS();
 <p>参考工具<br>
 安卓：HttpCanary<br>
 苹果：Surge (随便问问有没有师傅组队买surge mac版的授权)</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844205931604.jpg" alt="-w522" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844205931604.jpg" alt="-w522" loading="lazy"></figure>
 <h4 id="做了加固">做了加固</h4>
 <p>已知思路有三，</p>
 <ul>
@@ -198,30 +198,30 @@ window.onload=getCSS();
 3.启动 frida-server。<br>
 4.python main.py。</p>
 <p>默数三秒，脱好了。</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844277956685.jpg" alt="-w880" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844277956685.jpg" alt="-w880" loading="lazy"></figure>
 <p>第二种方式的demo:</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844214019846.jpg" alt="-w1225" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844214019846.jpg" alt="-w1225" loading="lazy"></figure>
 <p>第三中方式用的人最多，但是比较麻烦，加壳了找函数不方便，不加壳的话直接看代码硬怼就是行。</p>
 <p><strong>脱壳后</strong></p>
 <p>dex2jar，然后丢进反编译工具</p>
 <p>找核心算法其实很容易，比如直接搜一下加密包中header的特征字段</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844290955076.jpg" alt="-w450" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844289523233.jpg" alt="-w1480" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844290955076.jpg" alt="-w450" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844289523233.jpg" alt="-w1480" loading="lazy"></figure>
 <p>跟踪到下面的加密部分：<br>
-<img src="https://thekingofduck.github.io/post-images/app1/15844107807705/7C6DE6AD-DEC5-4D38-8D67-BCD2C7873D14.png" alt="7C6DE6AD-DEC5-4D38-8D67-BCD2C7873D14" loading="lazy"><br>
+<img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/7C6DE6AD-DEC5-4D38-8D67-BCD2C7873D14.png" alt="7C6DE6AD-DEC5-4D38-8D67-BCD2C7873D14" loading="lazy"><br>
 圈起来的为止就是加密的关键点了，点击一下跳过去即可。</p>
-<p><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/6F2066C9-F42F-4A59-BBFE-E76001CA679D.png" alt="6F2066C9-F42F-4A59-BBFE-E76001CA679D" loading="lazy"><br>
+<p><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/6F2066C9-F42F-4A59-BBFE-E76001CA679D.png" alt="6F2066C9-F42F-4A59-BBFE-E76001CA679D" loading="lazy"><br>
 传入的第一个字符串是需要加密的值，第二个是密钥。密钥可以在上上图中<code>getEncryptAES(paramRequest)</code>跟过去找到：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/388D7F7D-0A24-406E-B0A8-194687ECF9D2.png" alt="388D7F7D-0A24-406E-B0A8-194687ECF9D2" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/388D7F7D-0A24-406E-B0A8-194687ECF9D2.png" alt="388D7F7D-0A24-406E-B0A8-194687ECF9D2" loading="lazy"></figure>
 <p>加密算法代码已知，密钥已知，那顺手就可以copy出来自己加解密了：</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/E32C1720-8214-434B-975F-FD9B65E82F9A.png" alt="E32C1720-8214-434B-975F-FD9B65E82F9A" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/E32C1720-8214-434B-975F-FD9B65E82F9A.png" alt="E32C1720-8214-434B-975F-FD9B65E82F9A" loading="lazy"></figure>
 <p>还可以顺手写成burp插件，方便进行漏洞测试：</p>
-<p><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/216107F1-9491-4FE8-ACC4-91E5050D5F51.png" alt="216107F1-9491-4FE8-ACC4-91E5050D5F51" loading="lazy"><br>
+<p><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/216107F1-9491-4FE8-ACC4-91E5050D5F51.png" alt="216107F1-9491-4FE8-ACC4-91E5050D5F51" loading="lazy"><br>
 注册一个右键菜单方便在repeater里面加解密，注册一个payload处理，方便用于爆破之类的操作。</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/77583F6C-3A67-420B-B86A-4E94CFEF0A85.png" alt="77583F6C-3A67-420B-B86A-4E94CFEF0A85" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/77583F6C-3A67-420B-B86A-4E94CFEF0A85.png" alt="77583F6C-3A67-420B-B86A-4E94CFEF0A85" loading="lazy"></figure>
 <p>打包一下就可以扔给burp了。</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844303010949.jpg" alt="-w1480" loading="lazy"></figure>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/app1/15844107807705/15844304184113.jpg" alt="-w627" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844303010949.jpg" alt="-w1480" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/app1/15844107807705/15844304184113.jpg" alt="-w627" loading="lazy"></figure>
 <p>一切顺利成章。</p>
 <h3 id="0x03-加载成功">0x03 加载成功</h3>
 <p>抓包问题可以以微信为测试目标进行尝试，能抓到微信的其他的基本也就都可以抓到了；脱壳不能指望静态脱壳，还是多考虑怎么从内存中提取出dex来；通讯解密/反校验需要java基础，跟着代码构造出正确的数据包即可，看多了其实也就那么几种算法，各个算法加解密的要素了然于心后还原出解密代码不过copy一下，再解决反编译工具的错误即可；写burp插件也是一个样子，看多了就和套模板，背答案做题目差不多。</p>
@@ -235,23 +235,23 @@ window.onload=getCSS();
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/UW2pjkWu2/" rel="tag">frida</a>	
+				<a href="https://blog.thekingofduck.com/tag/UW2pjkWu2/" rel="tag">frida</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/pXEL2JVLC5/" rel="tag">通讯解密</a>	
+				<a href="https://blog.thekingofduck.com/tag/pXEL2JVLC5/" rel="tag">通讯解密</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/m9JHaEFLhv/" rel="tag">安卓分析</a>	
+				<a href="https://blog.thekingofduck.com/tag/m9JHaEFLhv/" rel="tag">安卓分析</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/ZvGbQweqGs/" rel="tag">安卓逆向</a>	
+				<a href="https://blog.thekingofduck.com/tag/ZvGbQweqGs/" rel="tag">安卓逆向</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/Patch-Cobalt-Strike-4.0/" rel="prev"> Patch Cobalt Strike 4.0</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/Patch-Cobalt-Strike-4.0/" rel="prev"> Patch Cobalt Strike 4.0</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-5-Attack-Kerbroes/" rel="next"> 域渗透学习笔记五：攻击Kerbroes</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-5-Attack-Kerbroes/" rel="next"> 域渗透学习笔记五：攻击Kerbroes</a></div>
 		
 		</div>
 	</nav>

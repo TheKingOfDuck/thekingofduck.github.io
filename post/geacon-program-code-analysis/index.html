@@ -168,7 +168,7 @@ window.onload=getCSS();
 <h3 id="0x01-写在前面">0x01 写在前面</h3>
 <p>项目地址: https://github.com/darkr4y/geacon</p>
 <p>项目说明:</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/readme.png" alt="readme" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/readme.png" alt="readme" loading="lazy"></figure>
 <p>这都说了啥...正好在拿go写c2，看下逻辑学习一下。</p>
 <p>代码目录：</p>
 <pre><code>├─cmd
@@ -380,7 +380,7 @@ main.go line 18 调用packet中的FirstBlood方法（packet.go line 158-170）,�
 <p>main.go line 22-23 如果代码没出错就接着运行，出错了就休眠一会儿在继续。休眠时长在config.go中line 20 WaitTime变量中获取<br>
 main.go line 24-25  获取resp中返回包中Content-Length的值,如果大于0就继续运行<br>
 main.go line 25-36  计算消息hmacHash,restBytes等,然后调用packet中的DecryptPacket方法（packet.go line 40-46）对消息进行解密。具体变量类型之类的可参考：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/debug.png" alt="debug" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/debug.png" alt="debug" loading="lazy"></figure>
 <p>main.go line 37-40 开始下一个循环，并在循环前先判断packetLen的字节是否小于0，如果是就打断循环。</p>
 <p>main.go line 41 调用packet.go中ParsePacket方法(line 54-76)处理decryptedBuf 和&amp;packetLen并返回commandType和commandBuf。（计算过程复杂，此处不作详细，可cs生成的paylaod进行理解）</p>
 <p>main.go line 42-120行 根据返回的cmdType的不同执行不同的功能模块，以执行命令为例，假如cmdType的返回值为78时就会进入命令执行流程，代码如下：</p>
@@ -397,14 +397,14 @@ case packet.CMD_TYPE_SHELL:
 	packet.PushResult(finalPaket)
 </code></pre>
 <p>传送执行结果的方法代码如下：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/PushResult.png" alt="PushResult" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/PushResult.png" alt="PushResult" loading="lazy"></figure>
 <p>执行命令的方法如下：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/Shell.png" alt="Shell" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/Shell.png" alt="Shell" loading="lazy"></figure>
 <p>可以看到作者有考虑到多平台上线问题。</p>
 <p>可惜：</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/Shell2.png" alt="Shell2" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/Shell2.png" alt="Shell2" loading="lazy"></figure>
 <p>cmdType的值没有计算正确（测试环境 win10下）</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/cmd.png" alt="cmd" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/cmd.png" alt="cmd" loading="lazy"></figure>
 <p>尝试过多平台兼容的人都知道有多狗。（golang版本问题，需要更新）</p>
 <p>最后如果没有对上会进入作者写的一个debug流程，然后回传到服务器告诉你：</p>
 <pre><code>You are now using geacon coded by darkr4y,and he may not have implemented this feature yet cuz life is shit.
@@ -414,24 +414,24 @@ case packet.CMD_TYPE_SHELL:
 <p>上线共分为三步：</p>
 <h4 id="加载iconscna">加载icons.cna</h4>
 <p>加载cs插件...</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/icons.png" alt="icons" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/icons.png" alt="icons" loading="lazy"></figure>
 <p>如名字所写，其作用修改beacon会话图标的。</p>
 <h4 id="rsa公钥私钥生成">RSA公钥/私钥生成</h4>
 <p>作者在项目里提供了生成工具（/tools/BeaconTool）：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/tools1.png" alt="tools1" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/tools1.png" alt="tools1" loading="lazy"></figure>
 <p>pemPublicBase64以及pemPrivateBase64即为需要的值，.beacon_keys其实就是cs根目录下的.cobaltstrike.beacon_keys文件。</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/tools2.png" alt="tools2" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/tools2.png" alt="tools2" loading="lazy"></figure>
 <p>下载该文件，改下代码，运行一下即可获取需要的值:</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/tools3.png" alt="tools3" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/tools3.png" alt="tools3" loading="lazy"></figure>
 <h4 id="编译上线">编译上线</h4>
 <p>直接将代码clone到GOPATH下(避免文件来回复制),然后修改/beacon/cmdconfig/config.go</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/code.png" alt="code" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/code.png" alt="code" loading="lazy"></figure>
 <p>改完go build main.go一下，上线。</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/on.png" alt="on" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/on.png" alt="on" loading="lazy"></figure>
 <p>如图一台linux一台Windows，mac维修去了，尚未测试。</p>
 <h3 id="0x04-总结">0x04 总结</h3>
 <p>正常打包后7M，upx压缩一下2m。卡巴和火绒正常上线，免杀。</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/avs.png" alt="avs" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/avs.png" alt="avs" loading="lazy"></figure>
 <p>bug挺多的，不过基础功能已经实现了，跟着逻辑调整一下还是会很香的。</p>
 <hr>
 <p>The End ，继续写bug。</p>
@@ -440,23 +440,23 @@ case packet.CMD_TYPE_SHELL:
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/9NsfrnruD/" rel="tag">代码审计</a>	
+				<a href="https://blog.thekingofduck.com/tag/9NsfrnruD/" rel="tag">代码审计</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/zclWlajBkL/" rel="tag">安全工具</a>	
+				<a href="https://blog.thekingofduck.com/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/IkCqa9XiN5/" rel="tag">c2</a>	
+				<a href="https://blog.thekingofduck.com/tag/IkCqa9XiN5/" rel="tag">c2</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/AbwEsrrROo/" rel="tag">golang</a>	
+				<a href="https://blog.thekingofduck.com/tag/AbwEsrrROo/" rel="tag">golang</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ReverseGoShell/" rel="prev"> ReverseGoShell：一款动态加密的反弹shell管理工具</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ReverseGoShell/" rel="prev"> ReverseGoShell：一款动态加密的反弹shell管理工具</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/burpsuite-engagement-tools/" rel="next"> 聊聊 Burpsuite Engagement Tools</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/burpsuite-engagement-tools/" rel="next"> 聊聊 Burpsuite Engagement Tools</a></div>
 		
 		</div>
 	</nav>

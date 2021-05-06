@@ -177,7 +177,7 @@ window.onload=getCSS();
 <p>SpringBoot是最强Web框架没有之一,数据库选用SQLite。两者结合基本上就可以实现一个jar加db文件就完成需求。</p>
 <h3 id="0x04-process">0x04 Process</h3>
 <p>管理页面选用layui作为前端框架,后台地址和端口以及账号密码通过配置文件动态配置。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1612093490242.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1612093490242.jpg" alt="" loading="lazy"></figure>
 <p>多端口方便其实就是给tomcat添加几个监听的端口而已:</p>
 <pre><code>Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
 connector.setScheme(scheme);
@@ -186,9 +186,9 @@ result.add(connector);
 </code></pre>
 <p>然后是不同端口指向不同页面:</p>
 <p>配置文件</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1612093569434.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1612093569434.jpg" alt="" loading="lazy"></figure>
 <p>判断逻辑</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1612093585093.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1612093585093.jpg" alt="" loading="lazy"></figure>
 <p>port是限制的端口,path是本地模板的路径,code是返回的状态码,header是相应的header,respbody本来是想正对一些特定的请求返回不同页面的,逻辑没有思考的很清楚,暂时搁置了。</p>
 <h4 id="页面捕获">页面捕获</h4>
 <p>过程比较耗时间,期初想拦截所有异常,在做统一处理即可,可实际过程发现springboot默认开起了add-mappings无法捕获404页面,而且静态资源过来的请求无法捕获,如果遇到解析差异那种洞就只能错过。关闭的话静态资源访问配置又会很麻烦。</p>
@@ -223,7 +223,7 @@ public class ExceptionController {
 }
 </code></pre>
 <p>这也处理确实能捕获到404页面,可是有个bug</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1612093604938.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1612093604938.jpg" alt="" loading="lazy"></figure>
 <p>getServletPath方法获取的路由恒为error,这也是springboot的特征之一,所有错误均会交由error路由处理,也就是说error默认是肯定存在的。</p>
 <p>正确的处理方式是在过滤器中进行记录:</p>
 <pre><code>public class LokiFilter implements Filter{
@@ -249,24 +249,24 @@ public class ExceptionController {
 <p>嗯,内存马也得在这层搞,不然鬼知道别人路由咋写的。</p>
 <h3 id="0x05-result">0x05 Result</h3>
 <p>代码结构:</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1612093623129.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1612093623129.png" alt="" loading="lazy"></figure>
 <p>后台页面:</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1612093636730.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1612093761078.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/1612093636730.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/1612093761078.png" alt="" loading="lazy"></figure>
 <p>模板文件:</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1612093774985.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1612093789285.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/1612093774985.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/1612093789285.jpg" alt="" loading="lazy"></figure>
 <p>一些有趣的事情:</p>
 <p>1.在公网跑起来后我收到的第一个请求是nmap扫cobaltstrike的。</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1612093806150.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/1612093806150.png" alt="" loading="lazy"></figure>
 <p>2.配置的通达和致远的页面都被来自河南和云南的两个IP人为访问过两次,识别依据是浏览器会自动加载/favicon.ico,脚本不会。</p>
 <p>3.被89.248.160.151这个IP扫了一通.txt的文件,还有一些请求路径是@.txt,不知道是不是扫描器没配好。</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1612093827620.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/1612093827620.png" alt="" loading="lazy"></figure>
 <p>4.创宇的censys爬虫先是先访问了8090端口,然后是88端口,中间间隔了将近14小时,bing的爬虫也到访过一次,fofa的爬虫没看到,但是有上百条ua为Go-http-client/1.1和fasthttp的请求,python的只有一条。</p>
 <p>5.捕获了两个漏洞:</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1612093839683.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/1612093839683.jpg" alt="" loading="lazy"></figure>
 <p>搜索了一下应该是Linksys路由的命令注入.</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1612093860509.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/1612093860509.png" alt="" loading="lazy"></figure>
 <p>看起来是未授权相关的漏洞,80端口配置了很低从其他蜜罐上扒下来的Server头,可能是其中一款产品的洞吧,涉及的产品太多,百度没搜到这个路由,无法验证了。</p>
 
 							</div>

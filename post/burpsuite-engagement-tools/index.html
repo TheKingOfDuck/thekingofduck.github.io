@@ -166,7 +166,7 @@ window.onload=getCSS();
 				<p>直入burp右键菜单中的Engagement tools，中文翻译为作战工具。</p>
 <!-- more -->
 <!-- more -->
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/main.png" alt="main" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/main.png" alt="main" loading="lazy"></figure>
 <p>从上往下依次为</p>
 <pre><code>Search                        搜索
 Find Comments                 查找注释
@@ -181,46 +181,46 @@ Simulate manual testing       人工模拟
 <p>依次聊一下个人的使用心得：</p>
 <h3 id="0x01-search-搜索">0x01 Search 搜索</h3>
 <p>在选定的上右键打开后默认如下：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/search1.png" alt="search1" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/search1.png" alt="search1" loading="lazy"></figure>
 <p>输入字符串即可查找需要的字符串，相当于浏览器view-source后再Ctrl + F查找字符串。</p>
 <p>如果只用到这里的话有点不太黑阔，正则搜索这么强大，不用可惜了。</p>
 <p>贴一条自己常用的正则：</p>
 <pre><code>(.user|pass|accessKeyId|accessKeySecret|secretToken|callback|admin|config|key|access|token?)
 </code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/search2.png" alt="search2" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/search2.png" alt="search2" loading="lazy"></figure>
 <p>擅用该功能，在SRC捡洞可能可能只是一个习惯而已。（比如每次准备关Burp之前考虑全选site map中所有的站点，再拿正则去尝试一下。）</p>
 <h3 id="0x02-find-comments-查找注释">0x02 Find Comments 查找注释</h3>
 <p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/Comments1.png" alt="Comments1" loading="lazy"></figure>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/Comments2.png" alt="Comments2" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/Comments1.png" alt="Comments1" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/Comments2.png" alt="Comments2" loading="lazy"></figure>
 <p>可以理解为Search功能的正则写为:</p>
 <pre><code>&lt;!--(.*?)--&gt;
 </code></pre>
 <p>不同语言的注释不一样，burp内置的正则更为全面。测试过程中适当看一下注释内容，没准一个未授权就出来了。</p>
 <h3 id="0x03-find-scripts-查找js代码">0x03 Find scripts 查找js代码</h3>
 <p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/script1.png" alt="script1" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/script2.png" alt="script2" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/script1.png" alt="script1" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/script2.png" alt="script2" loading="lazy"></figure>
 <p>该功能处理.js后缀的文件之外，页面中script标签的内容也会自动匹配出来。等同于右键看完当前页面的js逻辑后在接着Ctrl F 搜.js然后继续看代码，在Burp里相对方便得多。</p>
 <h3 id="0x04-find-references-查找引用">0x04 Find references 查找引用</h3>
 <p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/references1.png" alt="references1" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/references2.png" alt="references2" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/references1.png" alt="references1" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/references2.png" alt="references2" loading="lazy"></figure>
 <p>如果用过<a href="https://github.com/TheKingOfDuck/myScripts/tree/master/LinksDumper">LinksDumper</a>的话会发现Burp这个功能和它一模一样，都是匹配出页面中存在的各类链接。</p>
 <p>默认自带的功能还有不少人是去用插件或者用独立的程序跑。burp自带的它不香咩？</p>
 <h3 id="0x05-analyze-target-分析目标">0x05 Analyze target 分析目标</h3>
 <p>选择目标右键打开后总共有四个页面</p>
 <p>1.总结页面：</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/Analyze1.png" alt="Analyze1" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/Analyze1.png" alt="Analyze1" loading="lazy"></figure>
 <p>假设拿到100个目标，筛选软柿子的时候通过总结页面判断一下，寻找交互点多的站点/链接进行单点突破，未尝不是一个高效的选择。</p>
 <p>2.动态Urls：</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/Analyze2.png" alt="Analyze2" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/Analyze2.png" alt="Analyze2" loading="lazy"></figure>
 <p>该功能可以快速筛选出带外部参数的url，并统计了参数的数量，秉着交互点越多可能存在的问题就越多的原则，筛选一下，效率++。</p>
 <p>3.其他Url：</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/Analyze3.png" alt="Analyze3" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/Analyze3.png" alt="Analyze3" loading="lazy"></figure>
 <p>该功能可以理解为Find references功能遍历出来所有的连接后再去除Dynamic URLs中带交互点的Url的结果。</p>
 <p>4.参数统计：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/Analyze4.png" alt="Analyze4" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/Analyze4.png" alt="Analyze4" loading="lazy"></figure>
 <p>首先是统计了出现过那些参数，其次是这些参数在Url里面出现过次数。有了这个功能在瓶颈渗透提取本站存在的参数时根本不需要第三方插件工具辅助，直接复制name字段即可；某个参数存在漏洞后也可通过该功能查找其他可能存在相同问题的Url。</p>
 <h3 id="0x06-discover-content-内容勘测">0x06 Discover content  内容勘测</h3>
 <p>该功能秒杀一切目录扫描工具。</p>
@@ -340,13 +340,13 @@ rar
 <hr>
 <h3 id="0x06-schedule-task-定时任务">0x06 Schedule task  定时任务</h3>
 <p>选择目标右键打开后如下图：</p>
-<figure data-type="image" tabindex="28"><img src="https://thekingofduck.github.io/post-images/Schedule1.png" alt="Schedule2" loading="lazy"></figure>
+<figure data-type="image" tabindex="28"><img src="https://blog.thekingofduck.com/post-images/Schedule1.png" alt="Schedule2" loading="lazy"></figure>
 <p>定时任务，没啥特别的值得说。</p>
 <p>0x07 Simulate manual testing 人工模拟</p>
 <pre><code>This function sends common test payloads to random URL s and parameters at irregular intervals, to generate traflic similar to that caused by manual penetration testing. Its only real use is to let you take a break from testing while still looking busy according to the server's logs. Only items which you selected in the site map will be requested.
 </code></pre>
 <p>正如功能描述中所说的，这是一个懒人挖洞选项。</p>
-<figure data-type="image" tabindex="29"><img src="https://thekingofduck.github.io/post-images/Simulate1.png" alt="Simulate1" loading="lazy"></figure>
+<figure data-type="image" tabindex="29"><img src="https://blog.thekingofduck.com/post-images/Simulate1.png" alt="Simulate1" loading="lazy"></figure>
 <p>缺陷很明显，不会自动寻找并提交表单，只能依托于已有的表单/参数的基础上进行探测，相当于一款被动扫描器。结合Discover content使用，法力无边。</p>
 <h3 id="0x08-总结">0x08 总结</h3>
 <p>熟练使用这些作战功能，扫描器从此是路人。</p>
@@ -355,18 +355,18 @@ rar
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/IL13rQkiY/" rel="tag">burpsuite</a>	
+				<a href="https://blog.thekingofduck.com/tag/IL13rQkiY/" rel="tag">burpsuite</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/i4bz1WdICs/" rel="tag">渗透测试</a>	
+				<a href="https://blog.thekingofduck.com/tag/i4bz1WdICs/" rel="tag">渗透测试</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/zclWlajBkL/" rel="tag">安全工具</a>	
+				<a href="https://blog.thekingofduck.com/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/geacon-program-code-analysis/" rel="prev"> Geacon代码通读&amp;上线指南</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/geacon-program-code-analysis/" rel="prev"> Geacon代码通读&amp;上线指南</a></div>
 		 
 		 
 		</div>

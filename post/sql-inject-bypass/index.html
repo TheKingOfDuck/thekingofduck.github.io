@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://thekingofduck.github.io/post-images/sql-inject-bypass.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/sql-inject-bypass.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -171,8 +171,8 @@ window.onload=getCSS();
 <p>只能时间盲注没得选,绕过也容易,payload如下:</p>
 <pre><code>select case when((select binary database()) like &quot;test%&quot;)then sleep(3) else sleep(0) end;
 </code></pre>
-<figure data-type="image" tabindex="1"><img src="https://thekingofduck.github.io/post-images/1603551425773.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="2"><img src="https://thekingofduck.github.io/post-images/1603551438310.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1603551425773.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1603551438310.jpg" alt="" loading="lazy"></figure>
 <p>不允许操作字符那就不操作,只对比就好。写完Poc产生一个问题。平常盲注都是查询出单个字符串再去和所有字符串对比,但如果把模糊查询条件改成<code>like &quot;%a%&quot;</code>,先查询一下所有字符串字符串，看是否在目标字段中,并将存在于目标字段中的字符聚合起来,再用<code>like &quot;abc%&quot;</code>去将存在的字符串进行排序,效率会不会高很多？</p>
 <p>假设查询结果为:<code>95b17c3b195983f7ef37358a6db07e35</code><br>
 不考虑特俗字符串,盲注情况以下62个字符串需要对比:</p>
@@ -242,24 +242,24 @@ if __name__ == '__main__':
     print(&quot;[+] 返回值: {}&quot;.format(result))
 
 </code></pre>
-<figure data-type="image" tabindex="3"><img src="https://thekingofduck.github.io/post-images/1603551452123.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1603551452123.jpg" alt="" loading="lazy"></figure>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://thekingofduck.github.io/tag/u1G11Fcfr/" rel="tag">注入绕过</a>	
+				<a href="https://blog.thekingofduck.com/tag/u1G11Fcfr/" rel="tag">注入绕过</a>	
 				 
-				<a href="https://thekingofduck.github.io/tag/i4bz1WdICs/" rel="tag">渗透测试</a>	
+				<a href="https://blog.thekingofduck.com/tag/i4bz1WdICs/" rel="tag">渗透测试</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://thekingofduck.github.io/post/loki-web-honeypot/" rel="prev"> Loki - 一个轻量级Web蜜罐</a></div>
+		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/loki-web-honeypot/" rel="prev"> Loki - 一个轻量级Web蜜罐</a></div>
 		 
 		 
-		<div class="wow bounceInRight nav-next3"><a href="https://thekingofduck.github.io/post/recode-captcha-killer/" rel="next"> captcha-killer修改随笔</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/recode-captcha-killer/" rel="next"> captcha-killer修改随笔</a></div>
 		
 		</div>
 	</nav>
