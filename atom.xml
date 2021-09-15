@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-09-15T02:26:32.038Z</updated>
+    <updated>2021-09-15T11:16:47.288Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -10,6 +10,78 @@
     <logo>https://blog.thekingofduck.com/images/avatar.png</logo>
     <icon>https://blog.thekingofduck.com/favicon.ico</icon>
     <rights>All rights reserved 2021, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[记一个黑盒挖到的C#程序反序列化漏洞]]></title>
+        <id>https://blog.thekingofduck.com/post/CSharpProgramDeserialize/</id>
+        <link href="https://blog.thekingofduck.com/post/CSharpProgramDeserialize/">
+        </link>
+        <updated>2021-09-15T10:12:34.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>Author: TheKingOfDuck</p>
+</blockquote>
+<p>很久之前黑盒挖到的一个漏洞，过程比较有意思。</p>
+<p>前置知识:</p>
+<pre><code>https://xz.aliyun.com/t/9168
+https://xz.aliyun.com/t/9591
+https://xz.aliyun.com/t/9593
+https://xz.aliyun.com/t/9592
+https://xz.aliyun.com/t/9594
+https://xz.aliyun.com/t/9595
+https://xz.aliyun.com/t/9597
+https://xz.aliyun.com/t/9598
+https://xz.aliyun.com/t/9599
+https://xz.aliyun.com/t/9600
+https://xz.aliyun.com/t/9601
+https://xz.aliyun.com/t/9602
+https://xz.aliyun.com/t/9603
+https://xz.aliyun.com/t/9604
+https://xz.aliyun.com/t/9605
+</code></pre>
+<p>懒得挨个点开可以直接查看主页:</p>
+<pre><code>https://xz.aliyun.com/u/12258
+</code></pre>
+<p>Y4er的文章应该全文背诵.</p>
+<h3 id="0x01-起">0x01 起</h3>
+<p>拿到一个压缩包,里面有个客户端程序但根本不敢运行,怕被反打被钓鱼,所以只是翻了翻程序运行配置和日志,配置中找到一组账号密码,有加密但是估计问题不大,如果账号密码正确直接运行应该是可以登录的。环境有些恶劣,物理机本身都卡装虚拟机运行肯定是不现实的,只得先拖进peid查一下看看是什么程序,研究一下密码明文能不能解出来,没准其他地方也能用。</p>
+<p>拖进<code>PEID</code>的时候意外发生了,不小心点了一下导致程序运行了。看到登录框有账号密码虽然验证了猜想,但运行是件非预期的事情,赶紧关闭,然后拖进360杀毒扫了一下,有两个<code>dll</code>报毒...那种恐慌感至今记忆犹新。排查计划任务排查进程删敏感文件,一套操作下来仍不放心,就差关机换机器了。</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316737974277.jpg" alt="" loading="lazy"></figure>
+<p>所幸后续在VT查出报毒的两个<code>dll</code>都是多年前就被标记的,显然不可能是为了当前场景准备的水坑,逆向看代码也未找到什么可疑的代码段,故正常运行,账号也确实可登陆,权限为某部们下的管理员,可查看该部门下所有员工的信息以及跳转认证到一些其他系统,相关功能及站点未发现可<code>getshell</code>的点,该部门也和推断的管理目标的部门有些远,已知了账号规律和默认密码,故希望爆破获取到权限更高一些的账号,方便查看更多的信息,登录更多的系统。</p>
+<h3 id="0x02-承">0x02 承</h3>
+<p>抓包发现流量是有加密的,无法直接爆破,需要解决加密问题。</p>
+<p><strong>代码分析:</strong></p>
+<p>根据登录按钮的文字提示定位到对应的点击事件:</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316897826629.jpg" alt="" loading="lazy"></figure>
+<p>点击后会判断账号密码验证码这些是否为空,然后进入登录事件<code>OnLoginEvent</code></p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316906394011.jpg" alt="" loading="lazy"></figure>
+<p>往下继续跟会发现比较有意思的点是它没有直接传递输入框中拿到的值,而是塞进<code>UserInfo</code>里,再调用<code>SendLoginMsg</code>方法进一步处理</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316909581522.jpg" alt="" loading="lazy"></figure>
+<p>继续套娃,将<code>UserInfo</code>塞到<code>MsgSysInfo</code>再调<code>zip</code>的对象中<code>GetBuffer</code>方法去处理最后交个给<code>Login</code>方法,看到这初步怀疑程序可能有问题,就算没有直接传递相关值,那到最后发送相关的处理前应该要转成<code>json</code>之类的才符合预期。</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316920311571.jpg" alt="" loading="lazy"></figure>
+<p><code>zip</code>和<code>dh</code>是分别在构造方法及其调用的<code>Init</code>方法中初始化完成,前者里面的相关方法主要是数据压缩加密,后者是数据发送。<br>
+<img src="https://blog.thekingofduck.com/post-images/16316733199903/16316933138030.jpg" alt="" loading="lazy"></p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316929693665.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316932189590.jpg" alt="" loading="lazy"></figure>
+<p>先看被调用的<code>YYSharpZip</code>中的<code>GetBuffer</code>方法,调用顺序如下图所示,<code>GetZipBuffer</code>方法在压缩之前先调<code>BinaryFormatter</code>对传入的对象进行了序列化操作,完了再去调加密方法<code>EncryptData</code>进行数据加密。<br>
+<img src="https://blog.thekingofduck.com/post-images/16316733199903/16316926747757.jpg" alt="" loading="lazy"></p>
+<p>客户端对数据处理的过程中有序列化的操作,那服务端接受到数据后必然有反序列化的操作,盲猜有洞,整理调用流程如下:</p>
+<pre><code>this.btnLogin_Click --&gt; this.OnLoginEvent() --&gt; this.SendLoginMsg() --&gt; this.zip.GetBuffer() --&gt; this.ZipData() --&gt; this.GetZipBuffer() --&gt; new BinaryFormatter().Serialize() --&gt; this.CompressToByte() --&gt; new YYEncrypt().EncryptData() --&gt; this.dh.Login()
+</code></pre>
+<p>盲猜服务器处理逻辑流程如下:</p>
+<pre><code>XXX.MsgReceive --&gt; new YYEncrypt().DecryptData--&gt;this.DeCompressToBytes --&gt; new BinaryFormatter().Deserialize() --&gt; this.msgSysInfo.getLoginInfo() --&gt; XXX
+</code></pre>
+<p>漏洞验证逻辑应当如下:</p>
+<pre><code>Ysoserial.NET --&gt; Gadget serialize data --&gt; this.zip.GetBuffer --&gt; this.ZipData --&gt; this.GetZipBuffer --&gt; new BinaryFormatter().Serialize() --&gt; this.CompressToByte --&gt; new YYEncrypt().EncryptData --&gt; Send To Tartget Server --&gt; XXX.MsgReceive --&gt; new YYEncrypt().DecryptData--&gt;this.DeCompressToBytes --&gt; new BinaryFormatter().Deserialize() --&gt; Attack success
+</code></pre>
+<h3 id="0x03-转">0x03 转</h3>
+<p>按照猜想的验证逻辑写好漏洞利用代码,本地测试了几条<code>Gadget</code>后成功弹出计算器。</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316960301985.jpg" alt="" loading="lazy"></figure>
+<p>本地成功弹出计算器的<code>Gadget</code>在目标上并未正常执行,依然是重新试了几条<code>Gadget</code>后命令才得以执行成功,写文件访问不到,<code>Ysoserial.NET</code>中提供的回显方法当时未测试成功,时间紧也没法投入精力去研究其原因,Windows一直无回显执行命令就怪难受的...所幸服务器的发现服务器其他端口开了<code>iis</code>. 默认路径写<code>aspx</code>拿到<code>shell</code>.</p>
+<h3 id="0x04-合">0x04 合</h3>
+<p>程序是通用的,前前后后打了七八个<code>shell</code>,由于其自带的加密给<code>payload</code>上了保护伞,攻击过程并未被发现过,有意思的是内网扫描被发现后起初防御人员排查的时候采取的措施是删除某个打<code>payload</code>前会探测的特征文件。🐮得很，可关服务器才是最强防御措施！</p>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316964789051.jpg" alt="" loading="lazy"></figure>
+<p>整个过程并未看到过服务端代码,看似黑盒,可站在开发的逻辑上来看,盲猜的处理逻辑是完全合理的,也就说漏洞其实是一个理所应当的过程,开发就要那么写,能怎么办? ORZ不如换份开发的工作去卷他们的饭碗得了...</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[记一次从鸡肋SSRF到RCE的代码审计过程]]></title>
         <id>https://blog.thekingofduck.com/post/ssrf2rce/</id>
@@ -382,40 +454,6 @@ function burpJsEncrypter(rawPayload){
 <h3 id="重要提醒">重要提醒</h3>
 <p>如果c0ny1师傅那个插件你不会耍的画这个插件你估计也不会耍的,最核心的问题都是找页面中的加密逻辑,然后复制出来运行而已。</p>
 <p><strong>即兴开发，Enjoy it~~</strong></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Patch Cobalt Strike 4.0 Stage X64 Bugs]]></title>
-        <id>https://blog.thekingofduck.com/post/patch-cobalt-strike-40-stage-x64-bugs/</id>
-        <link href="https://blog.thekingofduck.com/post/patch-cobalt-strike-40-stage-x64-bugs/">
-        </link>
-        <updated>2020-03-20T09:12:05.000Z</updated>
-        <content type="html"><![CDATA[<p>根据出问题的地方<code>Use x64 payload</code>,也就是stage x64生成的exe无法正常运行，跟到:</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846865680139.jpg" alt="-w1532" loading="lazy"></figure>
-<pre><code>boolean bool1 = DialogUtils.bool(this.options, &quot;x64&quot;);
-</code></pre>
-<p>如果x64被选择则进入x64生成。</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846867392378.jpg" alt="-w1037" loading="lazy"></figure>
-<p>通过代码对比会发现调用的函数都没啥区别。</p>
-<pre><code>new ArtifactUtils(this.client).patchArtifact(this.stager, &quot;artifact64.exe&quot;, paramString);
-</code></pre>
-<p>跟过来发现两个<code>patchArtifact</code>的重载方法：</p>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846873782080.jpg" alt="-w827" loading="lazy"></figure>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846874079370.jpg" alt="-w886" loading="lazy"></figure>
-<p>可以发现，整个过程中都没有涉及到传递<code>stage</code>的架构,基本即可以断定和这中间环节没关系了。</p>
-<p>继续跟到最终环节:</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846898933890.jpg" alt="-w946" loading="lazy"></figure>
-<p>细节出来了有没有：</p>
-<pre><code>this.stager = ListenerUtils.getListener(this.client, str1).getPayloadStager(&quot;x86&quot;);
-</code></pre>
-<p>明显官方将<code>stage</code>固定在了x86的,所以把x64的payload写进来自然就不对了。</p>
-<p><strong>验证</strong></p>
-<p>将86修改为64：</p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846900913944.jpg" alt="-w843" loading="lazy"></figure>
-<p>重新打包运行：</p>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902345978.jpg" alt="-w399" loading="lazy"></figure>
-<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/cs4_2/15846863899548/15846902520176.jpg" alt="-w845" loading="lazy"></figure>
-<p>至于完整的代码怎么调整,就自己考虑咯...</p>
 ]]></content>
     </entry>
 </feed>
