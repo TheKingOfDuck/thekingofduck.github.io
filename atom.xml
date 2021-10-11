@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-09-15T11:16:47.288Z</updated>
+    <updated>2021-10-11T10:04:41.892Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -265,12 +265,6 @@ Host: www.baidu.com
 <pre><code>&quot;success&quot;:true,&quot;image&quot;:&quot;(.*?)&quot;
 </code></pre>
 <p>即可正常识别。</p>
-<p>修改过的位置<br>
-<img src="https://blog.thekingofduck.com/post-images/1596881092380.png" alt="" loading="lazy"></p>
-<p>如图中代码所示，原作者提了一个burp自带的发包，无法指定超时这个问题，有趣的是自己印象中超时一直都是再Intruder的超时是可以在option中指定的。</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1596881494055.jpeg" alt="" loading="lazy"></figure>
-<p>认真看了一下pause before retry和超时没半毛钱关系，一直以来都看错了...</p>
-<p>问题其实出在MorePayloads的判断上，原代码未判断是否有新的payload生成，直接无条件的返回true，这一来即便请请求第三方网站的识别结果尚未回来，burp也认为有新的Payload生成了，直接调自然就只能返回空了。</p>
 ]]></content>
     </entry>
     <entry>
