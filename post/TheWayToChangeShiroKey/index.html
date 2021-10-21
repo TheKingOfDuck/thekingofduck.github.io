@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>记一个黑盒挖到的C#程序反序列化漏洞 | CoolCat&#39; Blog</title>	
+<title>关于shiro漏洞利用中key的修改 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/CSharpProgramDeserialize.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/TheWayToChangeShiroKey.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -154,10 +154,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">记一个黑盒挖到的C#程序反序列化漏洞</h1>
+			<h1 class="wow swing entry-title">关于shiro漏洞利用中key的修改</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-09-15 18:12:34" itemprop="datePublished" pubdate="">2021-09-15</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-10-21 18:07:17" itemprop="datePublished" pubdate="">2021-10-21</time></i>
 	          </div>
 			
 </span>
@@ -165,89 +165,51 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<blockquote>
-<p>Author: TheKingOfDuck</p>
-</blockquote>
-<p>很久之前黑盒挖到的一个漏洞，过程比较有意思。</p>
-<p>前置知识:</p>
-<pre><code>https://xz.aliyun.com/t/9168
-https://xz.aliyun.com/t/9591
-https://xz.aliyun.com/t/9593
-https://xz.aliyun.com/t/9592
-https://xz.aliyun.com/t/9594
-https://xz.aliyun.com/t/9595
-https://xz.aliyun.com/t/9597
-https://xz.aliyun.com/t/9598
-https://xz.aliyun.com/t/9599
-https://xz.aliyun.com/t/9600
-https://xz.aliyun.com/t/9601
-https://xz.aliyun.com/t/9602
-https://xz.aliyun.com/t/9603
-https://xz.aliyun.com/t/9604
-https://xz.aliyun.com/t/9605
+				<pre><code>Author:TheKingOfDuck@JJ官方认证菜逼
 </code></pre>
-<p>懒得挨个点开可以直接查看主页:</p>
-<pre><code>https://xz.aliyun.com/u/12258
+<p>首先需要准备一个<code>shiro</code>的漏洞环境,这里B叨叨一句,从阿里云的<code>spring server</code>拉回来的模板，模板引擎默认配置有毛病，真鸡儿烦人。环境主要代码都是抄的<code>vulhub</code>，不是自己写的。</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347971709406.jpg" alt="" loading="lazy"></figure>
+<p>要修改<code>shiro</code>的<code>Key</code> 我们应该要明白<code>shiro key</code>存在那儿。在<code>org.apache.shiro.mgt.AbstractRememberMeManager</code>这个接口中。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347981125460.jpg" alt="" loading="lazy"></figure>
+<p>注意看，这只是默认<code>key</code>而已，很多时候找到的<code>key</code>都是从配置文件里面读出来的，并非默认这个，官方提供的有接口可以获取或设置这个值。</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347984164953.jpg" alt="" loading="lazy"></figure>
+<p>继承这个接口的类在<code>org.apache.shiro.web.mgt.CookieRememberMeManager</code>,可以调他获取一个看看。</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347998577301.jpg" alt="" loading="lazy"></figure>
+<p>看着好像没啥毛病，但实际测试会发现这个值并不是程序真正在用的值，直接在路由里去<code>set</code>一个值也没生效，为什么？因为获取到的值就不是同一个对象里面的。程序的配置在初始化的时候就在配置类中初始化了一个<code>CookieRememberMeManager</code>对象，程序用的一直是他，而不是自己<code>new</code>出来的那个。</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348023443427.jpg" alt="" loading="lazy"></figure>
+<p>那如果想设置的话也得是在这里设置。比如：</p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024099778.jpg" alt="" loading="lazy"></figure>
+<p>这样是没毛病的</p>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024854239.jpg" alt="" loading="lazy"></figure>
+<p>可真实日站的环境中就没那么容易了，没法让你直接修改执行<code>Java</code>代码，这就得利用<code>Java</code>反射相关的技术去获取这一对象，并修改里面的值。</p>
+<p>构造的过程会很麻烦，不通环境中遇到的情况会不一样，比如在这份代码中需要修改的bean对象的命名是<code>shiroFilter</code>而不是<code>shiroFilterFactoryBean</code>(其他环境多数为<code>shiroFilterFactoryBean</code>)，所以给的代码需要调整以下，这是不用脑子也能完成的事情。</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348032696144.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348031401930.jpg" alt="" loading="lazy"></figure>
+<p>改完访问一下<code>/setshirokey</code>路由测试一下，没啥毛病。</p>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348034698297.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348037013176.jpg" alt="" loading="lazy"></figure>
+<p>修改的代码调好了，下一步就是塞进<code>yso</code>中生成序列化的数据，再按照<code>shiro</code>的加密方式加密后发包。</p>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096084628.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096363566.jpg" alt="" loading="lazy"></figure>
+<p>发包后再测试 稳得一逼.<br>
+<img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096680919.jpg" alt="" loading="lazy"></p>
+<p>写在最后：</p>
+<pre><code>写这个是因为看到tw上有人发了一段废话，大概就是『我弄出shiro key修改的方法了，但是我不告诉你』。真是听君一些话，如听一席话。。。这早就有的东西。
+群里划水的时间就顺便写了，仅供娱乐使用。
 </code></pre>
-<p>Y4er的文章应该全文背诵.</p>
-<h3 id="0x01-起">0x01 起</h3>
-<p>拿到一个压缩包,里面有个客户端程序但根本不敢运行,怕被反打被钓鱼,所以只是翻了翻程序运行配置和日志,配置中找到一组账号密码,有加密但是估计问题不大,如果账号密码正确直接运行应该是可以登录的。环境有些恶劣,物理机本身都卡装虚拟机运行肯定是不现实的,只得先拖进peid查一下看看是什么程序,研究一下密码明文能不能解出来,没准其他地方也能用。</p>
-<p>拖进<code>PEID</code>的时候意外发生了,不小心点了一下导致程序运行了。看到登录框有账号密码虽然验证了猜想,但运行是件非预期的事情,赶紧关闭,然后拖进360杀毒扫了一下,有两个<code>dll</code>报毒...那种恐慌感至今记忆犹新。排查计划任务排查进程删敏感文件,一套操作下来仍不放心,就差关机换机器了。</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316737974277.jpg" alt="" loading="lazy"></figure>
-<p>所幸后续在VT查出报毒的两个<code>dll</code>都是多年前就被标记的,显然不可能是为了当前场景准备的水坑,逆向看代码也未找到什么可疑的代码段,故正常运行,账号也确实可登陆,权限为某部们下的管理员,可查看该部门下所有员工的信息以及跳转认证到一些其他系统,相关功能及站点未发现可<code>getshell</code>的点,该部门也和推断的管理目标的部门有些远,已知了账号规律和默认密码,故希望爆破获取到权限更高一些的账号,方便查看更多的信息,登录更多的系统。</p>
-<h3 id="0x02-承">0x02 承</h3>
-<p>抓包发现流量是有加密的,无法直接爆破,需要解决加密问题。</p>
-<p><strong>代码分析:</strong></p>
-<p>根据登录按钮的文字提示定位到对应的点击事件:</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316897826629.jpg" alt="" loading="lazy"></figure>
-<p>点击后会判断账号密码验证码这些是否为空,然后进入登录事件<code>OnLoginEvent</code></p>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316906394011.jpg" alt="" loading="lazy"></figure>
-<p>往下继续跟会发现比较有意思的点是它没有直接传递输入框中拿到的值,而是塞进<code>UserInfo</code>里,再调用<code>SendLoginMsg</code>方法进一步处理</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316909581522.jpg" alt="" loading="lazy"></figure>
-<p>继续套娃,将<code>UserInfo</code>塞到<code>MsgSysInfo</code>再调<code>zip</code>的对象中<code>GetBuffer</code>方法去处理最后交个给<code>Login</code>方法,看到这初步怀疑程序可能有问题,就算没有直接传递相关值,那到最后发送相关的处理前应该要转成<code>json</code>之类的才符合预期。</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316920311571.jpg" alt="" loading="lazy"></figure>
-<p><code>zip</code>和<code>dh</code>是分别在构造方法及其调用的<code>Init</code>方法中初始化完成,前者里面的相关方法主要是数据压缩加密,后者是数据发送。<br>
-<img src="https://blog.thekingofduck.com/post-images/16316733199903/16316933138030.jpg" alt="" loading="lazy"></p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316929693665.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316932189590.jpg" alt="" loading="lazy"></figure>
-<p>先看被调用的<code>YYSharpZip</code>中的<code>GetBuffer</code>方法,调用顺序如下图所示,<code>GetZipBuffer</code>方法在压缩之前先调<code>BinaryFormatter</code>对传入的对象进行了序列化操作,完了再去调加密方法<code>EncryptData</code>进行数据加密。<br>
-<img src="https://blog.thekingofduck.com/post-images/16316733199903/16316926747757.jpg" alt="" loading="lazy"></p>
-<p>客户端对数据处理的过程中有序列化的操作,那服务端接受到数据后必然有反序列化的操作,盲猜有洞,整理调用流程如下:</p>
-<pre><code>this.btnLogin_Click --&gt; this.OnLoginEvent() --&gt; this.SendLoginMsg() --&gt; this.zip.GetBuffer() --&gt; this.ZipData() --&gt; this.GetZipBuffer() --&gt; new BinaryFormatter().Serialize() --&gt; this.CompressToByte() --&gt; new YYEncrypt().EncryptData() --&gt; this.dh.Login()
-</code></pre>
-<p>盲猜服务器处理逻辑流程如下:</p>
-<pre><code>XXX.MsgReceive --&gt; new YYEncrypt().DecryptData--&gt;this.DeCompressToBytes --&gt; new BinaryFormatter().Deserialize() --&gt; this.msgSysInfo.getLoginInfo() --&gt; XXX
-</code></pre>
-<p>漏洞验证逻辑应当如下:</p>
-<pre><code>Ysoserial.NET --&gt; Gadget serialize data --&gt; this.zip.GetBuffer --&gt; this.ZipData --&gt; this.GetZipBuffer --&gt; new BinaryFormatter().Serialize() --&gt; this.CompressToByte --&gt; new YYEncrypt().EncryptData --&gt; Send To Tartget Server --&gt; XXX.MsgReceive --&gt; new YYEncrypt().DecryptData--&gt;this.DeCompressToBytes --&gt; new BinaryFormatter().Deserialize() --&gt; Attack success
-</code></pre>
-<h3 id="0x03-转">0x03 转</h3>
-<p>按照猜想的验证逻辑写好漏洞利用代码,本地测试了几条<code>Gadget</code>后成功弹出计算器。</p>
-<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316960301985.jpg" alt="" loading="lazy"></figure>
-<p>本地成功弹出计算器的<code>Gadget</code>在目标上并未正常执行,依然是重新试了几条<code>Gadget</code>后命令才得以执行成功,写文件访问不到,<code>Ysoserial.NET</code>中提供的回显方法当时未测试成功,时间紧也没法投入精力去研究其原因,Windows一直无回显执行命令就怪难受的...所幸服务器的发现服务器其他端口开了<code>iis</code>. 默认路径写<code>aspx</code>拿到<code>shell</code>.</p>
-<h3 id="0x04-合">0x04 合</h3>
-<p>程序是通用的,前前后后打了七八个<code>shell</code>,由于其自带的加密给<code>payload</code>上了保护伞,攻击过程并未被发现过,有意思的是内网扫描被发现后起初防御人员排查的时候采取的措施是删除某个打<code>payload</code>前会探测的特征文件。🐮得很，可关服务器才是最强防御措施！</p>
-<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16316733199903/16316964789051.jpg" alt="" loading="lazy"></figure>
-<p>整个过程并未看到过服务端代码,看似黑盒,可站在开发的逻辑上来看,盲猜的处理逻辑是完全合理的,也就说漏洞其实是一个理所应当的过程,开发就要那么写,能怎么办? ORZ不如换份开发的工作去卷他们的饭碗得了...</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://blog.thekingofduck.com/tag/r2_M293GC/" rel="tag">deserialize</a>	
-				 
-				<a href="https://blog.thekingofduck.com/tag/BVGYiueytY/" rel="tag">黑盒</a>	
-				 
-				<a href="https://blog.thekingofduck.com/tag/09pGl0XxJE/" rel="tag">C#</a>	
+				<a href="https://blog.thekingofduck.com/tag/XEOfgrMOR/" rel="tag">shiro</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/" rel="prev"> 关于shiro漏洞利用中key的修改</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/ssrf2rce/" rel="next"> 记一次从鸡肋SSRF到RCE的代码审计过程</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/CSharpProgramDeserialize/" rel="next"> 记一个黑盒挖到的C#程序反序列化漏洞</a></div>
 		
 		</div>
 	</nav>

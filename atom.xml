@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-10-11T10:05:12.510Z</updated>
+    <updated>2021-10-21T10:17:47.112Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -10,6 +10,46 @@
     <logo>https://blog.thekingofduck.com/images/avatar.png</logo>
     <icon>https://blog.thekingofduck.com/favicon.ico</icon>
     <rights>All rights reserved 2021, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[关于shiro漏洞利用中key的修改]]></title>
+        <id>https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/</id>
+        <link href="https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/">
+        </link>
+        <updated>2021-10-21T10:07:17.000Z</updated>
+        <content type="html"><![CDATA[<pre><code>Author:TheKingOfDuck@JJ官方认证菜逼
+</code></pre>
+<p>首先需要准备一个<code>shiro</code>的漏洞环境,这里B叨叨一句,从阿里云的<code>spring server</code>拉回来的模板，模板引擎默认配置有毛病，真鸡儿烦人。环境主要代码都是抄的<code>vulhub</code>，不是自己写的。</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347971709406.jpg" alt="" loading="lazy"></figure>
+<p>要修改<code>shiro</code>的<code>Key</code> 我们应该要明白<code>shiro key</code>存在那儿。在<code>org.apache.shiro.mgt.AbstractRememberMeManager</code>这个接口中。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347981125460.jpg" alt="" loading="lazy"></figure>
+<p>注意看，这只是默认<code>key</code>而已，很多时候找到的<code>key</code>都是从配置文件里面读出来的，并非默认这个，官方提供的有接口可以获取或设置这个值。</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347984164953.jpg" alt="" loading="lazy"></figure>
+<p>继承这个接口的类在<code>org.apache.shiro.web.mgt.CookieRememberMeManager</code>,可以调他获取一个看看。</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347998577301.jpg" alt="" loading="lazy"></figure>
+<p>看着好像没啥毛病，但实际测试会发现这个值并不是程序真正在用的值，直接在路由里去<code>set</code>一个值也没生效，为什么？因为获取到的值就不是同一个对象里面的。程序的配置在初始化的时候就在配置类中初始化了一个<code>CookieRememberMeManager</code>对象，程序用的一直是他，而不是自己<code>new</code>出来的那个。</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348023443427.jpg" alt="" loading="lazy"></figure>
+<p>那如果想设置的话也得是在这里设置。比如：</p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024099778.jpg" alt="" loading="lazy"></figure>
+<p>这样是没毛病的</p>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024854239.jpg" alt="" loading="lazy"></figure>
+<p>可真实日站的环境中就没那么容易了，没法让你直接修改执行<code>Java</code>代码，这就得利用<code>Java</code>反射相关的技术去获取这一对象，并修改里面的值。</p>
+<p>构造的过程会很麻烦，不通环境中遇到的情况会不一样，比如在这份代码中需要修改的bean对象的命名是<code>shiroFilter</code>而不是<code>shiroFilterFactoryBean</code>(其他环境多数为<code>shiroFilterFactoryBean</code>)，所以给的代码需要调整以下，这是不用脑子也能完成的事情。</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348032696144.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348031401930.jpg" alt="" loading="lazy"></figure>
+<p>改完访问一下<code>/setshirokey</code>路由测试一下，没啥毛病。</p>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348034698297.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348037013176.jpg" alt="" loading="lazy"></figure>
+<p>修改的代码调好了，下一步就是塞进<code>yso</code>中生成序列化的数据，再按照<code>shiro</code>的加密方式加密后发包。</p>
+<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096084628.jpg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096363566.jpg" alt="" loading="lazy"></figure>
+<p>发包后再测试 稳得一逼.<br>
+<img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096680919.jpg" alt="" loading="lazy"></p>
+<p>写在最后：</p>
+<pre><code>写这个是因为看到tw上有人发了一段废话，大概就是『我弄出shiro key修改的方法了，但是我不告诉你』。真是听君一些话，如听一席话。。。这早就有的东西。
+群里划水的时间就顺便写了，仅供娱乐使用。
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[记一个黑盒挖到的C#程序反序列化漏洞]]></title>
         <id>https://blog.thekingofduck.com/post/CSharpProgramDeserialize/</id>
@@ -385,69 +425,6 @@ Host: www.baidu.com
 <p>使用Java开发，自动提取域名要素，debug在115行设置setProxy(true)即可。</p>
 <p>一点点心得：<br>
 Joomla和Dede性质差不多，99%的洞都是建立在有后台权限/低用户权限的情况下才能利用，谁日谁知道...</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[重写一个burpJsEncrypter]]></title>
-        <id>https://blog.thekingofduck.com/post/ReCode-A-BurpJsEncrypter/</id>
-        <link href="https://blog.thekingofduck.com/post/ReCode-A-BurpJsEncrypter/">
-        </link>
-        <updated>2020-03-22T11:05:56.000Z</updated>
-        <summary type="html"><![CDATA[<p>Github:<a href="https://github.com/TheKingOfDuck/burpJsEncrypter">https://github.com/TheKingOfDuck/burpJsEncrypter</a></p>
-]]></summary>
-        <content type="html"><![CDATA[<p>Github:<a href="https://github.com/TheKingOfDuck/burpJsEncrypter">https://github.com/TheKingOfDuck/burpJsEncrypter</a></p>
-<!-- more -->
-<h3 id="写在前面">写在前面</h3>
-<p>先说说这个项目为什么会出现。<br>
-c0ny1师傅写的<a href="https://github.com/c0ny1/jsEncrypter">jsEncrypter</a>其实已经能满足日常需求，我本人也是因为这个项目成为c0ny1师傅的&quot;粉丝&quot;的。</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848722634917.jpg" alt="-w814" loading="lazy"></figure>
-<p>使用过的师傅都知道这个项目依赖于<code>phantomjs</code>,别人我不知道,我自己老是忘记<code>phantomjs</code>的二进制我放哪儿了,而且每次启动啥的都比较麻烦。</p>
-<p>在学习Java的过程中了解到官方在<code>JDK1.6</code>添加了新的<code>ScriptEngine</code>类,允许用户直接执行<code>js</code>代码,也就是说调用<code>phantomjs</code>这件事可以,但是没必要。</p>
-<h3 id="代码编写">代码编写</h3>
-<p>看看核心的实现方法：</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/F1C1AFDB-4EE7-4AB7-86BE-FB54A7462B33.png" alt="F1C1AFDB-4EE7-4AB7-86BE-FB54A7462B33" loading="lazy"></figure>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/49ADE7CC-F87A-4EFF-A6DD-3A7AD5916D6F.png" alt="49ADE7CC-F87A-4EFF-A6DD-3A7AD5916D6F" loading="lazy"></figure>
-<p>调用了加载到内存中的<code>burpJsEncrypter</code>函数,代码如下：</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/B43B9A52-8508-4CC2-B058-C06AB5D5B79D.png" alt="B43B9A52-8508-4CC2-B058-C06AB5D5B79D" loading="lazy"></figure>
-<p>是不是很简单...</p>
-<p>再说说开发过程中遇到的最大的坑。</p>
-<p>在代码中调试时使用<code>System.getProperty(&quot;user.dir&quot;)</code>获取当前路径时完全OK的,但是加载到内存后再获取就会变成：</p>
-<pre><code>/var/folders/tg/z5wcq7jx3s526hykwz0pz2v00000gp/T/burp8120677802571630018.tmp/22js/
-</code></pre>
-<p>导致遍历<code>js</code>文件一致失败。</p>
-<h3 id="如何使用">如何使用</h3>
-<p>1.将本项目的js目录下的<code>js</code>文件复制到用户目录下的<code>/burp/jsFile</code>目录:</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848732791664.jpg" alt="-w834" loading="lazy"></figure>
-<p>文件名咋命名完全无所谓,但是main.js中<code>burpJsEncrypter</code>函数一定要有,需要人工修改的加密逻辑也就是注释中间的内容：</p>
-<pre><code>//Java调用的主函数
-function burpJsEncrypter(rawPayload){
-
-	var encryptedPayload;
-
-
-	//===============加密开始=================
-
-	encryptedPayload = hex_md5(rawPayload);
-
-	//===============加密结束=================
-
-	return encryptedPayload;
-}
-</code></pre>
-<p>如上面的代码中的hex_md5函数是加载到内存中的其他js文件中的函数。实战中只需要把页面中所有涉及加密的js文件下载到这个目录即可。</p>
-<p>2.设置Payload处理：</p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/08B84570-D584-4265-9505-27D7F5821E24.png" alt="08B84570-D584-4265-9505-27D7F5821E24" loading="lazy"></figure>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848737403466.jpg" alt="-w647" loading="lazy"></figure>
-<p>选完再开始爆破即可。</p>
-<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848739154768.jpg" alt="-w973" loading="lazy"></figure>
-<p><strong>明文在哪儿看？</strong></p>
-<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848741045333.jpg" alt="-w628" loading="lazy"></figure>
-<p><strong>支持再Repeater中加密？</strong></p>
-<p>选中要加密的字段,右键选择<code>burpJsEncrypter</code>菜单即可。</p>
-<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/burpJsEncrypter//15848705260967/15848741934886.jpg" alt="-w519" loading="lazy"></figure>
-<h3 id="重要提醒">重要提醒</h3>
-<p>如果c0ny1师傅那个插件你不会耍的画这个插件你估计也不会耍的,最核心的问题都是找页面中的加密逻辑,然后复制出来运行而已。</p>
-<p><strong>即兴开发，Enjoy it~~</strong></p>
 ]]></content>
     </entry>
 </feed>
