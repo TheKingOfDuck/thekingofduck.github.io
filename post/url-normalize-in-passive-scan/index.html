@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>关于shiro漏洞利用中key的修改 | CoolCat&#39; Blog</title>	
+<title>被动扫描中http流量清洗 | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/TheWayToChangeShiroKey.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/url-normalize-in-passive-scan.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -156,10 +156,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">关于shiro漏洞利用中key的修改</h1>
+			<h1 class="wow swing entry-title">被动扫描中http流量清洗</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-10-21 18:07:17" itemprop="datePublished" pubdate="">2021-10-21</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-11-08 18:32:59" itemprop="datePublished" pubdate="">2021-11-08</time></i>
 	          </div>
 			
 </span>
@@ -167,53 +167,69 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<pre><code>Author:TheKingOfDuck@JJ官方认证菜逼
+				<h3 id="0x00-写在前面">0x00 写在前面</h3>
+<p>几个月前写的被动扫描工具<code>rcefuzzer</code>的实际使用效果挺好的,除了被污染的流量贼太娘的多以外，需要清洗掉无意义的流量。</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363613590388.jpg" alt="" loading="lazy"></figure>
+<h3 id="0x01-核心问题">0x01 核心问题</h3>
+<p>减少请求数量的核心问题是:</p>
+<pre><code>如何确定流量是否是重复的?
 </code></pre>
-<p>首先需要准备一个<code>shiro</code>的漏洞环境,这里B叨叨一句,从阿里云的<code>spring server</code>拉回来的模板，模板引擎默认配置有毛病，真鸡儿烦人。环境主要代码都是抄的<code>vulhub</code>，不是自己写的。</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347971709406.jpg" alt="" loading="lazy"></figure>
-<p>要修改<code>shiro</code>的<code>Key</code> 我们应该要明白<code>shiro key</code>存在那儿。在<code>org.apache.shiro.mgt.AbstractRememberMeManager</code>这个接口中。</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347981125460.jpg" alt="" loading="lazy"></figure>
-<p>注意看，这只是默认<code>key</code>而已，很多时候找到的<code>key</code>都是从配置文件里面读出来的，并非默认这个，官方提供的有接口可以获取或设置这个值。</p>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347984164953.jpg" alt="" loading="lazy"></figure>
-<p>继承这个接口的类在<code>org.apache.shiro.web.mgt.CookieRememberMeManager</code>,可以调他获取一个看看。</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16347998577301.jpg" alt="" loading="lazy"></figure>
-<p>看着好像没啥毛病，但实际测试会发现这个值并不是程序真正在用的值，直接在路由里去<code>set</code>一个值也没生效，为什么？因为获取到的值就不是同一个对象里面的。程序的配置在初始化的时候就在配置类中初始化了一个<code>CookieRememberMeManager</code>对象，程序用的一直是他，而不是自己<code>new</code>出来的那个。</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348023443427.jpg" alt="" loading="lazy"></figure>
-<p>那如果想设置的话也得是在这里设置。比如：</p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024099778.jpg" alt="" loading="lazy"></figure>
-<p>这样是没毛病的</p>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348024854239.jpg" alt="" loading="lazy"></figure>
-<p>可真实日站的环境中就没那么容易了，没法让你直接修改执行<code>Java</code>代码，这就得利用<code>Java</code>反射相关的技术去获取这一对象，并修改里面的值。</p>
-<p>构造的过程会很麻烦，不通环境中遇到的情况会不一样，比如在这份代码中需要修改的bean对象的命名是<code>shiroFilter</code>而不是<code>shiroFilterFactoryBean</code>(其他环境多数为<code>shiroFilterFactoryBean</code>)，所以给的代码需要调整以下，这是不用脑子也能完成的事情。</p>
-<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348032696144.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348031401930.jpg" alt="" loading="lazy"></figure>
-<p>改完访问一下<code>/setshirokey</code>路由测试一下，没啥毛病。</p>
-<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348034698297.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="11"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348037013176.jpg" alt="" loading="lazy"></figure>
-<p>修改的代码调好了，下一步就是塞进<code>yso</code>中生成序列化的数据，再按照<code>shiro</code>的加密方式加密后发包。</p>
-<figure data-type="image" tabindex="12"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096084628.jpg" alt="" loading="lazy"></figure>
-<figure data-type="image" tabindex="13"><img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096363566.jpg" alt="" loading="lazy"></figure>
-<p>发包后再测试 稳得一逼.<br>
-<img src="https://blog.thekingofduck.com/post-images/16347962792332/16348096680919.jpg" alt="" loading="lazy"></p>
-<p>写在最后：</p>
-<pre><code>写这个是因为看到tw上有人发了一段废话，大概就是『我弄出shiro key修改的方法了，但是我不告诉你』。真是听君一些话，如听一席话。。。这早就有的东西。
-群里划水的时间就顺便写了，仅供娱乐使用。
+<p>一个完整的标准链接包含了协议,凭证,目的地址,目标端口,路由,参数,描点这7部分,凭证和描点,其中凭据和描点都属于浏览器层面用户操作体验的问题,不用考虑。那么将其他五个部分加上不同的请求方法组成一个向量就是:</p>
+<pre><code>请求方法:协议:域名:端口:URL路径:参数名称排序合集
 </code></pre>
+<p>请求方法,协议,域名,端口这四个的变化比较小,基本上是固定的,也不用考虑怎么考虑。</p>
+<h3 id="0x02-路由处理">0x02 路由处理</h3>
+<p>URL路径的花样会比较多,去除资源文件的不多说,这里主要考虑其他情况,比如</p>
+<pre><code>A:/path1/path2
+B:///path1////path2
+</code></pre>
+<p>这里在处理的时候比较好奇中间件是怎么判断两个路由等效的,于是翻了以下代码,在<code>org.apache.catalina.connector.CoyoteAdapter#normalize</code>中可以看到代码对<code>\</code>,<code>//</code>,<code>/./</code>,<code>/../</code>等字符串进行了处理,路径标准化后再去做<code>servlet</code>调度。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16360956681866/96827ED7-684C-4B18-A7EF-169E63A6B985.png" alt="96827ED7-684C-4B18-A7EF-169E63A6B985" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16360956681866/133DE564-841D-4463-AE59-8C18EE80FDFF.png" alt="133DE564-841D-4463-AE59-8C18EE80FDFF" loading="lazy"></figure>
+<p>对于做流量清洗来说，只需要关注：</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16360956681866/2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09.png" alt="2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09" loading="lazy"></figure>
+<p>这个实现读起来没那么友好,那么可以改写为：</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16360956681866/479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73.png" alt="479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73" loading="lazy"></figure>
+<p>再比如:</p>
+<pre><code>A:/news/1
+B:/news/2
+A:/news/1/read
+B:/news/2/edit
+</code></pre>
+<p>很明显的是restfull风格或者伪静态的写法，AB属于同一个路由，BC不同，后端的写法可能是：</p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16360956681866/4FAC106D-9AE0-4616-B244-95643D6D3C1E.png" alt="4FAC106D-9AE0-4616-B244-95643D6D3C1E" loading="lazy"></figure>
+<p>处理思路也比较清楚,路径标准化后再切割一下,尝试转换成不通的整数，相同的视作同一路由即可。</p>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16360956681866/78C9522E-188A-4D7B-B168-9283423A9920.png" alt="78C9522E-188A-4D7B-B168-9283423A9920" loading="lazy"></figure>
+<p>除了数字这种还经常遇到用hash或者uuid的,处理方式差不多，判断依据均已标准化后的路由为准。</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16360956681866/BF86F158-F069-433D-AD76-AA54D59D1084.png" alt="BF86F158-F069-433D-AD76-AA54D59D1084" loading="lazy"></figure>
+<h3 id="0x03-参数处理">0x03 参数处理</h3>
+<p>已经考虑到的后端写法如：</p>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16360956681866/493DFA24-BE9A-4C00-BAD7-AA44DFFDF057.png" alt="493DFA24-BE9A-4C00-BAD7-AA44DFFDF057" loading="lazy"></figure>
+<p>对应的URL如下：</p>
+<pre><code>A:/news?id=2
+B:/news?action=edit&amp;id=2
+C:/news?action=del&amp;id=2
+D:/news?id=2&amp;action=del
+</code></pre>
+<p>从相邻的来看,AB的参数不同,扫完A肯定得接着扫,但B扫完再扫C实际意义不大。CD的参数顺序不通,但本质上D和BC也是一样的。综合下来处理的思路是获取所有参数名排序后组成一个向量,作为判断流量是否重复的依据。也就是说,ABCD实际上只需要扫描AB即可。</p>
+<h3 id="0x04-写在最后">0x04 写在最后</h3>
+<p>orz... 做的时候感觉蛮多东西可以玩的,写出来就感觉索然无味,被自己菜哭ಥ_ಥ。</p>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363673467767.jpg" alt="" loading="lazy"></figure>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://blog.thekingofduck.com/tag/XEOfgrMOR/" rel="tag">shiro</a>	
+				<a href="https://blog.thekingofduck.com/tag/MhMIyfXZu/" rel="tag">被动扫描</a>	
+				 
+				<a href="https://blog.thekingofduck.com/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/url-normalize-in-passive-scan/" rel="prev"> 被动扫描中http流量清洗</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/CSharpProgramDeserialize/" rel="next"> 记一个黑盒挖到的C#程序反序列化漏洞</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/" rel="next"> 关于shiro漏洞利用中key的修改</a></div>
 		
 		</div>
 	</nav>

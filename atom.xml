@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-10-25T02:56:40.068Z</updated>
+    <updated>2021-11-08T10:39:20.616Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -10,6 +10,62 @@
     <logo>https://blog.thekingofduck.com/images/avatar.png</logo>
     <icon>https://blog.thekingofduck.com/favicon.ico</icon>
     <rights>All rights reserved 2021, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[被动扫描中http流量清洗]]></title>
+        <id>https://blog.thekingofduck.com/post/url-normalize-in-passive-scan/</id>
+        <link href="https://blog.thekingofduck.com/post/url-normalize-in-passive-scan/">
+        </link>
+        <updated>2021-11-08T10:32:59.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="0x00-写在前面">0x00 写在前面</h3>
+<p>几个月前写的被动扫描工具<code>rcefuzzer</code>的实际使用效果挺好的,除了被污染的流量贼太娘的多以外，需要清洗掉无意义的流量。</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363613590388.jpg" alt="" loading="lazy"></figure>
+<h3 id="0x01-核心问题">0x01 核心问题</h3>
+<p>减少请求数量的核心问题是:</p>
+<pre><code>如何确定流量是否是重复的?
+</code></pre>
+<p>一个完整的标准链接包含了协议,凭证,目的地址,目标端口,路由,参数,描点这7部分,凭证和描点,其中凭据和描点都属于浏览器层面用户操作体验的问题,不用考虑。那么将其他五个部分加上不同的请求方法组成一个向量就是:</p>
+<pre><code>请求方法:协议:域名:端口:URL路径:参数名称排序合集
+</code></pre>
+<p>请求方法,协议,域名,端口这四个的变化比较小,基本上是固定的,也不用考虑怎么考虑。</p>
+<h3 id="0x02-路由处理">0x02 路由处理</h3>
+<p>URL路径的花样会比较多,去除资源文件的不多说,这里主要考虑其他情况,比如</p>
+<pre><code>A:/path1/path2
+B:///path1////path2
+</code></pre>
+<p>这里在处理的时候比较好奇中间件是怎么判断两个路由等效的,于是翻了以下代码,在<code>org.apache.catalina.connector.CoyoteAdapter#normalize</code>中可以看到代码对<code>\</code>,<code>//</code>,<code>/./</code>,<code>/../</code>等字符串进行了处理,路径标准化后再去做<code>servlet</code>调度。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16360956681866/96827ED7-684C-4B18-A7EF-169E63A6B985.png" alt="96827ED7-684C-4B18-A7EF-169E63A6B985" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16360956681866/133DE564-841D-4463-AE59-8C18EE80FDFF.png" alt="133DE564-841D-4463-AE59-8C18EE80FDFF" loading="lazy"></figure>
+<p>对于做流量清洗来说，只需要关注：</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16360956681866/2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09.png" alt="2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09" loading="lazy"></figure>
+<p>这个实现读起来没那么友好,那么可以改写为：</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16360956681866/479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73.png" alt="479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73" loading="lazy"></figure>
+<p>再比如:</p>
+<pre><code>A:/news/1
+B:/news/2
+A:/news/1/read
+B:/news/2/edit
+</code></pre>
+<p>很明显的是restfull风格或者伪静态的写法，AB属于同一个路由，BC不同，后端的写法可能是：</p>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16360956681866/4FAC106D-9AE0-4616-B244-95643D6D3C1E.png" alt="4FAC106D-9AE0-4616-B244-95643D6D3C1E" loading="lazy"></figure>
+<p>处理思路也比较清楚,路径标准化后再切割一下,尝试转换成不通的整数，相同的视作同一路由即可。</p>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16360956681866/78C9522E-188A-4D7B-B168-9283423A9920.png" alt="78C9522E-188A-4D7B-B168-9283423A9920" loading="lazy"></figure>
+<p>除了数字这种还经常遇到用hash或者uuid的,处理方式差不多，判断依据均已标准化后的路由为准。</p>
+<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16360956681866/BF86F158-F069-433D-AD76-AA54D59D1084.png" alt="BF86F158-F069-433D-AD76-AA54D59D1084" loading="lazy"></figure>
+<h3 id="0x03-参数处理">0x03 参数处理</h3>
+<p>已经考虑到的后端写法如：</p>
+<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16360956681866/493DFA24-BE9A-4C00-BAD7-AA44DFFDF057.png" alt="493DFA24-BE9A-4C00-BAD7-AA44DFFDF057" loading="lazy"></figure>
+<p>对应的URL如下：</p>
+<pre><code>A:/news?id=2
+B:/news?action=edit&amp;id=2
+C:/news?action=del&amp;id=2
+D:/news?id=2&amp;action=del
+</code></pre>
+<p>从相邻的来看,AB的参数不同,扫完A肯定得接着扫,但B扫完再扫C实际意义不大。CD的参数顺序不通,但本质上D和BC也是一样的。综合下来处理的思路是获取所有参数名排序后组成一个向量,作为判断流量是否重复的依据。也就是说,ABCD实际上只需要扫描AB即可。</p>
+<h3 id="0x04-写在最后">0x04 写在最后</h3>
+<p>orz... 做的时候感觉蛮多东西可以玩的,写出来就感觉索然无味,被自己菜哭ಥ_ಥ。</p>
+<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363673467767.jpg" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[关于shiro漏洞利用中key的修改]]></title>
         <id>https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/</id>
@@ -408,23 +464,6 @@ Host: www.baidu.com
 <p>2.修改传入的参数，mvn package快速打包。</p>
 <p>比用Python写慢？不存在的！</p>
 <figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413022944759.png" alt="image-20200413022944759" loading="lazy"></figure>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[JoomlaCracker: JoomlaCracker CMS 批量爆破工具]]></title>
-        <id>https://blog.thekingofduck.com/post/JoomlaCracker/</id>
-        <link href="https://blog.thekingofduck.com/post/JoomlaCracker/">
-        </link>
-        <updated>2020-04-11T11:44:34.000Z</updated>
-        <summary type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~<!-- more --></p>
-]]></summary>
-        <content type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~<!-- more --></p>
-<!-- more -->
-<p>项目地址：<a href="https://github.com/TheKingOfDuck/JoomlaCracker">https://github.com/TheKingOfDuck/JoomlaCracker</a></p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1586606413161.png" alt="" loading="lazy"></figure>
-<p>使用Java开发，自动提取域名要素，debug在115行设置setProxy(true)即可。</p>
-<p>一点点心得：<br>
-Joomla和Dede性质差不多，99%的洞都是建立在有后台权限/低用户权限的情况下才能利用，谁日谁知道...</p>
 ]]></content>
     </entry>
 </feed>
