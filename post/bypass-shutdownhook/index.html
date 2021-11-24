@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>被动扫描中http流量清洗 | CoolCat&#39; Blog</title>	
+<title>Bypass ShutdownHook | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/url-normalize-in-passive-scan.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/bypass-shutdownhook.jpeg)"
 		
 		>
 			<div class="site-branding">
@@ -156,10 +156,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">被动扫描中http流量清洗</h1>
+			<h1 class="wow swing entry-title">Bypass ShutdownHook</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-11-08 18:32:59" itemprop="datePublished" pubdate="">2021-11-08</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2021-11-24 22:04:05" itemprop="datePublished" pubdate="">2021-11-24</time></i>
 	          </div>
 			
 </span>
@@ -167,71 +167,152 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<h3 id="0x00-写在前面">0x00 写在前面</h3>
-<p>几个月前写的被动扫描工具<code>rcefuzzer</code>的实际使用效果挺好的,除了被污染的流量贼太娘的多以外，需要清洗掉无意义的流量。</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363613590388.jpg" alt="" loading="lazy"></figure>
-<h3 id="0x01-核心问题">0x01 核心问题</h3>
-<p>减少请求数量的核心问题是:</p>
-<pre><code>如何确定流量是否是重复的?
+				<p>也是群里聊到的话题. 顺手实现一下。</p>
+<h3 id="0x01-问题阐述">0x01 问题阐述:</h3>
+<p>各类agent在主机上运行时，如果因为异常或者人工终止时会向master报一条日志。防御方追过去排查的话就GG，需要解决该问题。</p>
+<h3 id="0x02-功能实现">0x02 功能实现</h3>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1637763919435.jpeg" alt="" loading="lazy"></figure>
+<h3 id="0x03-绕过思路">0x03 绕过思路</h3>
+<p>Google到demo的第一瞬间想到的时遍历线程, 将<code>addShutdownHook</code>添加的线程扼杀在摇篮中。实际情况是遍历了相关线程组都没找到该线程。</p>
+<p>看下<code>addShutdownHook</code>的实现,实际上是调了<code>ApplicationShutdownHooks</code>中的<code>add</code>方法来做的, 只是在那之前检查了是否有沙箱而已。</p>
+<pre><code>    public void addShutdownHook(Thread hook) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission(&quot;shutdownHooks&quot;));
+        }
+        ApplicationShutdownHooks.add(hook);
+    }
 </code></pre>
-<p>一个完整的标准链接包含了协议,凭证,目的地址,目标端口,路由,参数,描点这7部分,凭证和描点,其中凭据和描点都属于浏览器层面用户操作体验的问题,不用考虑。那么将其他五个部分加上不同的请求方法组成一个向量就是:</p>
-<pre><code>请求方法:协议:域名:端口:URL路径:参数名称排序合集
+<p>单看add方法也只是将线程添加到了hooks这个数组里面，并没有见到线程启动。</p>
+<pre><code>    static synchronized void add(Thread hook) {
+        if(hooks == null)
+            throw new IllegalStateException(&quot;Shutdown in progress&quot;);
+
+        if (hook.isAlive())
+            throw new IllegalArgumentException(&quot;Hook already running&quot;);
+
+        if (hooks.containsKey(hook))
+            throw new IllegalArgumentException(&quot;Hook previously registered&quot;);
+
+        hooks.put(hook, hook);
+    }
 </code></pre>
-<p>请求方法,协议,域名,端口这四个的变化比较小,基本上是固定的,也不用考虑怎么考虑。</p>
-<h3 id="0x02-路由处理">0x02 路由处理</h3>
-<p>URL路径的花样会比较多,去除资源文件的不多说,这里主要考虑其他情况,比如</p>
-<pre><code>A:/path1/path2
-B:///path1////path2
+<p>但是<code>ApplicationShutdownHooks</code>中的静态代码快中有调用了一个叫<code>runHooks</code>的方法，里面有启动了线程，但这写法明显是行不通的，因为静态代码块在类初始化的时候就运行了,也就是说再<code>add</code>方法<code>hook</code>线程前就运行了的。</p>
+<pre><code>    private static IdentityHashMap&lt;Thread, Thread&gt; hooks;
+    static {
+        try {
+            Shutdown.add(1 /* shutdown hook invocation order */,
+                false /* not registered if shutdown in progress */,
+                new Runnable() {
+                    public void run() {
+                        runHooks();
+                    }
+                }
+            );
+            hooks = new IdentityHashMap&lt;&gt;();
+        } catch (IllegalStateException e) {
+            // application shutdown hooks cannot be added if
+            // shutdown is in progress.
+            hooks = null;
+        }
+    }
 </code></pre>
-<p>这里在处理的时候比较好奇中间件是怎么判断两个路由等效的,于是翻了以下代码,在<code>org.apache.catalina.connector.CoyoteAdapter#normalize</code>中可以看到代码对<code>\</code>,<code>//</code>,<code>/./</code>,<code>/../</code>等字符串进行了处理,路径标准化后再去做<code>servlet</code>调度。</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16360956681866/96827ED7-684C-4B18-A7EF-169E63A6B985.png" alt="96827ED7-684C-4B18-A7EF-169E63A6B985" loading="lazy"></figure>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16360956681866/133DE564-841D-4463-AE59-8C18EE80FDFF.png" alt="133DE564-841D-4463-AE59-8C18EE80FDFF" loading="lazy"></figure>
-<p>对于做流量清洗来说，只需要关注：</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16360956681866/2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09.png" alt="2EC0B35D-A87C-4BF0-8C82-69BDC1A60A09" loading="lazy"></figure>
-<p>这个实现读起来没那么友好,那么可以改写为：</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16360956681866/479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73.png" alt="479F2B17-E5E9-4B15-A4F5-DC9B9F2E8F73" loading="lazy"></figure>
-<p>再比如:</p>
-<pre><code>A:/news/1
-B:/news/2
-C:/news/1/read
-D:/news/2/edit
+<p><code>runHooks</code>方法：</p>
+<pre><code>static void runHooks() {
+        Collection&lt;Thread&gt; threads;
+        synchronized(ApplicationShutdownHooks.class) {
+            threads = hooks.keySet();
+            hooks = null;
+        }
+
+        for (Thread hook : threads) {
+            hook.start();
+        }
+        for (Thread hook : threads) {
+            while (true) {
+                try {
+                    hook.join();
+                    break;
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
 </code></pre>
-<p>很明显的是restfull风格或者伪静态的写法，AB属于同一个路由，BC不同，后端的写法可能是：</p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16360956681866/4FAC106D-9AE0-4616-B244-95643D6D3C1E.png" alt="4FAC106D-9AE0-4616-B244-95643D6D3C1E" loading="lazy"></figure>
-<p>处理思路也比较清楚,路径标准化后再切割一下,尝试转换成不通的整数，相同的视作同一路由即可。</p>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16360956681866/78C9522E-188A-4D7B-B168-9283423A9920.png" alt="78C9522E-188A-4D7B-B168-9283423A9920" loading="lazy"></figure>
-<p>除了数字这种还经常遇到用hash或者uuid的,处理方式差不多，判断依据均已标准化后的路由为准。</p>
-<figure data-type="image" tabindex="8"><img src="https://blog.thekingofduck.com/post-images/16360956681866/BF86F158-F069-433D-AD76-AA54D59D1084.png" alt="BF86F158-F069-433D-AD76-AA54D59D1084" loading="lazy"></figure>
-<h3 id="0x03-参数处理">0x03 参数处理</h3>
-<p>已经考虑到的后端写法如：</p>
-<figure data-type="image" tabindex="9"><img src="https://blog.thekingofduck.com/post-images/16360956681866/493DFA24-BE9A-4C00-BAD7-AA44DFFDF057.png" alt="493DFA24-BE9A-4C00-BAD7-AA44DFFDF057" loading="lazy"></figure>
-<p>对应的URL如下：</p>
-<pre><code>A:/news?id=2
-B:/news?action=edit&amp;id=2
-C:/news?action=del&amp;id=2
-D:/news?id=2&amp;action=del
+<p>结论是线程只是被存了起来，并没有启动，遍历无意义。</p>
+<p>再看看<code>System.exit()</code>都做了什么，和重载没差。</p>
+<pre><code>    public static void exit(int status) {
+        Runtime.getRuntime().exit(status);
+    }
 </code></pre>
-<p>从相邻的来看,AB的参数不同,扫完A肯定得接着扫,但B扫完再扫C实际意义不大。CD的参数顺序不通,但本质上D和BC也是一样的。综合下来处理的思路是获取所有参数名排序后组成一个向量,作为判断流量是否重复的依据。也就是说,ABCD实际上只需要扫描AB即可。</p>
-<h3 id="0x04-写在最后">0x04 写在最后</h3>
-<p>orz... 做的时候感觉蛮多东西可以玩的,写出来就感觉索然无味,被自己菜哭ಥ_ಥ。</p>
-<figure data-type="image" tabindex="10"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363673467767.jpg" alt="" loading="lazy"></figure>
+<p><code>Runtime.getRuntime().exit()</code> 仍只是检查了下沙盒。</p>
+<pre><code>    public void exit(int status) {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkExit(status);
+        }
+        Shutdown.exit(status);
+    }
+</code></pre>
+<p><code>Shutdown.exit()</code> 则运行了下上面提到的<code>runHooks</code>方法，此时<code>hooks</code>里面是有存了线程的，再此处启动的。</p>
+<pre><code>    static void exit(int status) {
+        synchronized (lock) {
+            if (status != 0 &amp;&amp; VM.isShutdown()) {
+                /* Halt immediately on nonzero status */
+                halt(status);
+            }
+        }
+        synchronized (Shutdown.class) {
+            /* Synchronize on the class object, causing any other thread
+             * that attempts to initiate shutdown to stall indefinitely
+             */
+            beforeHalt();
+            runHooks();
+            halt(status);
+        }
+    }
+</code></pre>
+<p>前面直觉错误的原因找到，思路就清晰了，再这个线程启动之前移除他即可。假设前面的写法是:</p>
+<pre><code>        Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(&quot;ShutDown.....&quot;);
+            }
+        });
+
+        Runtime.getRuntime().addShutdownHook(hook);
+</code></pre>
+<p>那最省事的做法是直接调内置的方法移除它：</p>
+<pre><code>Runtime.getRuntime().removeShutdownHook(hook);
+</code></pre>
+<p>实际场景没直接运行代码那么方便，那么反射获取一下<code>ApplicationShutdownHooks</code>中的<code>hooks</code>这个存了目标线程的<code>map</code>,将其置空即可。</p>
+<pre><code>                Class clz = Class.forName(&quot;java.lang.ApplicationShutdownHooks&quot;);
+                Field field = clz.getDeclaredField(&quot;hooks&quot;);
+                field.setAccessible(true);
+                field.set(clz,null);
+</code></pre>
+<p>效果：</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1637766642894.jpeg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1637766660474.jpeg" alt="" loading="lazy"></figure>
+<h3 id="0x04-实际利用">0x04 实际利用</h3>
+<p>之前写的垃圾就派上用场了。</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1637767159911.jpeg" alt="" loading="lazy"></figure>
+<p>比较稳妥的法子是吐一个jar出来，然后在当前JVM中遍历其他进程的信息，有目标agent的进程后就attach过去，加载一下自己的jar，不执行命令的情况下就把目标进程干掉再接着发心跳包。</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://blog.thekingofduck.com/tag/MhMIyfXZu/" rel="tag">被动扫描</a>	
-				 
 				<a href="https://blog.thekingofduck.com/tag/PrwAU8pcS/" rel="tag">安全开发</a>	
+				 
+				<a href="https://blog.thekingofduck.com/tag/zclWlajBkL/" rel="tag">安全工具</a>	
 				 
 					</div>						
 <nav class="navigation3 post-navigation3" role="navigation">
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/bypass-shutdownhook/" rel="prev"> Bypass ShutdownHook</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/TheWayToChangeShiroKey/" rel="next"> 关于shiro漏洞利用中key的修改</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/url-normalize-in-passive-scan/" rel="next"> 被动扫描中http流量清洗</a></div>
 		
 		</div>
 	</nav>

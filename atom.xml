@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-11-17T08:40:07.786Z</updated>
+    <updated>2021-11-24T15:27:50.773Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -10,6 +10,145 @@
     <logo>https://blog.thekingofduck.com/images/avatar.png</logo>
     <icon>https://blog.thekingofduck.com/favicon.ico</icon>
     <rights>All rights reserved 2021, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[Bypass ShutdownHook]]></title>
+        <id>https://blog.thekingofduck.com/post/bypass-shutdownhook/</id>
+        <link href="https://blog.thekingofduck.com/post/bypass-shutdownhook/">
+        </link>
+        <updated>2021-11-24T14:04:05.000Z</updated>
+        <content type="html"><![CDATA[<p>也是群里聊到的话题. 顺手实现一下。</p>
+<h3 id="0x01-问题阐述">0x01 问题阐述:</h3>
+<p>各类agent在主机上运行时，如果因为异常或者人工终止时会向master报一条日志。防御方追过去排查的话就GG，需要解决该问题。</p>
+<h3 id="0x02-功能实现">0x02 功能实现</h3>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/1637763919435.jpeg" alt="" loading="lazy"></figure>
+<h3 id="0x03-绕过思路">0x03 绕过思路</h3>
+<p>Google到demo的第一瞬间想到的时遍历线程, 将<code>addShutdownHook</code>添加的线程扼杀在摇篮中。实际情况是遍历了相关线程组都没找到该线程。</p>
+<p>看下<code>addShutdownHook</code>的实现,实际上是调了<code>ApplicationShutdownHooks</code>中的<code>add</code>方法来做的, 只是在那之前检查了是否有沙箱而已。</p>
+<pre><code>    public void addShutdownHook(Thread hook) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission(&quot;shutdownHooks&quot;));
+        }
+        ApplicationShutdownHooks.add(hook);
+    }
+</code></pre>
+<p>单看add方法也只是将线程添加到了hooks这个数组里面，并没有见到线程启动。</p>
+<pre><code>    static synchronized void add(Thread hook) {
+        if(hooks == null)
+            throw new IllegalStateException(&quot;Shutdown in progress&quot;);
+
+        if (hook.isAlive())
+            throw new IllegalArgumentException(&quot;Hook already running&quot;);
+
+        if (hooks.containsKey(hook))
+            throw new IllegalArgumentException(&quot;Hook previously registered&quot;);
+
+        hooks.put(hook, hook);
+    }
+</code></pre>
+<p>但是<code>ApplicationShutdownHooks</code>中的静态代码快中有调用了一个叫<code>runHooks</code>的方法，里面有启动了线程，但这写法明显是行不通的，因为静态代码块在类初始化的时候就运行了,也就是说再<code>add</code>方法<code>hook</code>线程前就运行了的。</p>
+<pre><code>    private static IdentityHashMap&lt;Thread, Thread&gt; hooks;
+    static {
+        try {
+            Shutdown.add(1 /* shutdown hook invocation order */,
+                false /* not registered if shutdown in progress */,
+                new Runnable() {
+                    public void run() {
+                        runHooks();
+                    }
+                }
+            );
+            hooks = new IdentityHashMap&lt;&gt;();
+        } catch (IllegalStateException e) {
+            // application shutdown hooks cannot be added if
+            // shutdown is in progress.
+            hooks = null;
+        }
+    }
+</code></pre>
+<p><code>runHooks</code>方法：</p>
+<pre><code>static void runHooks() {
+        Collection&lt;Thread&gt; threads;
+        synchronized(ApplicationShutdownHooks.class) {
+            threads = hooks.keySet();
+            hooks = null;
+        }
+
+        for (Thread hook : threads) {
+            hook.start();
+        }
+        for (Thread hook : threads) {
+            while (true) {
+                try {
+                    hook.join();
+                    break;
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
+</code></pre>
+<p>结论是线程只是被存了起来，并没有启动，遍历无意义。</p>
+<p>再看看<code>System.exit()</code>都做了什么，和重载没差。</p>
+<pre><code>    public static void exit(int status) {
+        Runtime.getRuntime().exit(status);
+    }
+</code></pre>
+<p><code>Runtime.getRuntime().exit()</code> 仍只是检查了下沙盒。</p>
+<pre><code>    public void exit(int status) {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkExit(status);
+        }
+        Shutdown.exit(status);
+    }
+</code></pre>
+<p><code>Shutdown.exit()</code> 则运行了下上面提到的<code>runHooks</code>方法，此时<code>hooks</code>里面是有存了线程的，再此处启动的。</p>
+<pre><code>    static void exit(int status) {
+        synchronized (lock) {
+            if (status != 0 &amp;&amp; VM.isShutdown()) {
+                /* Halt immediately on nonzero status */
+                halt(status);
+            }
+        }
+        synchronized (Shutdown.class) {
+            /* Synchronize on the class object, causing any other thread
+             * that attempts to initiate shutdown to stall indefinitely
+             */
+            beforeHalt();
+            runHooks();
+            halt(status);
+        }
+    }
+</code></pre>
+<p>前面直觉错误的原因找到，思路就清晰了，再这个线程启动之前移除他即可。假设前面的写法是:</p>
+<pre><code>        Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(&quot;ShutDown.....&quot;);
+            }
+        });
+
+        Runtime.getRuntime().addShutdownHook(hook);
+</code></pre>
+<p>那最省事的做法是直接调内置的方法移除它：</p>
+<pre><code>Runtime.getRuntime().removeShutdownHook(hook);
+</code></pre>
+<p>实际场景没直接运行代码那么方便，那么反射获取一下<code>ApplicationShutdownHooks</code>中的<code>hooks</code>这个存了目标线程的<code>map</code>,将其置空即可。</p>
+<pre><code>                Class clz = Class.forName(&quot;java.lang.ApplicationShutdownHooks&quot;);
+                Field field = clz.getDeclaredField(&quot;hooks&quot;);
+                field.setAccessible(true);
+                field.set(clz,null);
+</code></pre>
+<p>效果：</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/1637766642894.jpeg" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/1637766660474.jpeg" alt="" loading="lazy"></figure>
+<h3 id="0x04-实际利用">0x04 实际利用</h3>
+<p>之前写的垃圾就派上用场了。</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/1637767159911.jpeg" alt="" loading="lazy"></figure>
+<p>比较稳妥的法子是吐一个jar出来，然后在当前JVM中遍历其他进程的信息，有目标agent的进程后就attach过去，加载一下自己的jar，不执行命令的情况下就把目标进程干掉再接着发心跳包。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[被动扫描中http流量清洗]]></title>
         <id>https://blog.thekingofduck.com/post/url-normalize-in-passive-scan/</id>
@@ -429,41 +568,6 @@ Host: www.baidu.com
 <h3 id="todo">TODO</h3>
 <p>1.特定网段上线的问题（？这个场景没有很清楚）<br>
 2.内网ip也判断下，避免出现多个目标在一个小的局域网共用一个外网IP，其中一台上线后其他机器就不弹窗了。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Copy2Java：在Burp中一键生成Java代码]]></title>
-        <id>https://blog.thekingofduck.com/post/Copy2Java/</id>
-        <link href="https://blog.thekingofduck.com/post/Copy2Java/">
-        </link>
-        <updated>2020-04-12T17:18:19.000Z</updated>
-        <content type="html"><![CDATA[<p>项目地址：<a href="https://github.com/TheKingOfDuck/Copy2Java">https://github.com/TheKingOfDuck/Copy2Java</a></p>
-<h3 id="0x01-初始化">0x01 初始化</h3>
-<p>先说说为什么要用Java写这个插件？为什么要生成的是Java的代码。</p>
-<p>1.简化安全从业者用Java写web漏洞利用工具的流程。</p>
-<p>2.其他语言有插件实现了，生成现成的JAVA代码可在强迫自己使用Java的同时也不会拉低效率。</p>
-<h3 id="0x02-加载中">0x02 加载中</h3>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413020409078.png" alt="image-20200413020409078" loading="lazy"></figure>
-<p>代码写完回头再看除了感觉辣鸡没什么太多其他感觉，过程中最麻烦的是画GUI，intellj拖控件有点恶心，eclipse拖好后再复制回intellj即可。在http发包方面目前用过的最方便的是HttpRequest，所以生成的代码依赖也选择它，打包在了项目的lib目录，导入即可。</p>
-<h3 id="0x02-加载成功">0x02 加载成功</h3>
-<p>使用:</p>
-<p>1.加载插件：</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413021026557.png" alt="image-20200413021026557" loading="lazy"></figure>
-<p>2.在burp的repeater中点击Copy2Java菜单：</p>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413021159116.png" alt="image-20200413021159116" loading="lazy"></figure>
-<p>3.设置是否开启代理【可选】：</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413021244692.png" alt="image-20200413021244692" loading="lazy"></figure>
-<p>默认是不开代理的，没需要的话这部可以跳过。</p>
-<p>4.点击步骤3中弹出的窗口中的Copy to clipboard按钮复制代码并粘贴到ide:</p>
-<p>添加插件lib目录下的依赖包</p>
-<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413021640508.png" alt="image-20200413021640508" loading="lazy"></figure>
-<p>完成</p>
-<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413022210153.png" alt="image-20200413022210153" loading="lazy"></figure>
-<p>如何高效的写一个web相关漏洞的利用工具？</p>
-<p>1.新建mvn项目，并将生成的代码复制进来。</p>
-<p>2.修改传入的参数，mvn package快速打包。</p>
-<p>比用Python写慢？不存在的！</p>
-<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/copy2java//image-20200413022944759.png" alt="image-20200413022944759" loading="lazy"></figure>
 ]]></content>
     </entry>
 </feed>
