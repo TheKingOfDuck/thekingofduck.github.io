@@ -2,14 +2,53 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2021-11-24T15:44:46.759Z</updated>
+    <updated>2022-01-04T04:39:19.608Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
     <subtitle>当代废物</subtitle>
     <logo>https://blog.thekingofduck.com/images/avatar.png</logo>
     <icon>https://blog.thekingofduck.com/favicon.ico</icon>
-    <rights>All rights reserved 2021, CoolCat&apos; Blog</rights>
+    <rights>All rights reserved 2022, CoolCat&apos; Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[某网关的RCE]]></title>
+        <id>https://blog.thekingofduck.com/post/apisix-dashboard-unauth-rce/</id>
+        <link href="https://blog.thekingofduck.com/post/apisix-dashboard-unauth-rce/">
+        </link>
+        <updated>2022-01-04T04:33:04.000Z</updated>
+        <content type="html"><![CDATA[<pre><code>之前分析的一个洞，顺便同步到博客。
+</code></pre>
+<h3 id="0x01-初始化">0x01 初始化</h3>
+<p>diff了下代码,以为会和Java那种一样,两个中间件解析差异造成的问题。还去看底层代码了, 实际上不是, 此处浪费了一小时...</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406798783868.jpg" alt="" loading="lazy"></figure>
+<p>实际上就是<code>/apisix/admin/migrate/export</code>,<code>/apisix/admin/migrate/import</code>没做鉴权而已。(鉴权中间件是在droplet中注册的 而这两路由没有用wgin.Wraps()函数转换为droplet的路由函数)</p>
+<p>环境搭建:</p>
+<pre><code>https://github.com/apache/apisix-docker
+</code></pre>
+<p>将2.10.1-alpine改成2.7就可以快速跑起来了。<br>
+<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406800880453.jpg" alt="" loading="lazy"></p>
+<h3 id="0x02-加载中">0x02 加载中</h3>
+<p>官方文档提示在转发过程中可以执行lua脚本的,所以思路也简单,利用未授权的接口覆盖一个带脚本的配置进去,再访问触发即可。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406801696957.jpg" alt="" loading="lazy"></figure>
+<p>构造的过程比较乏味,很少有人这么,Google没搜到案例。</p>
+<p>大概分为：</p>
+<p>1.构造一个带脚本的数据包。<br>
+<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406803886097.jpg" alt="" loading="lazy"></p>
+<p>2.导出payload模板。<br>
+<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406804536525.jpg" alt="" loading="lazy"></p>
+<p>3.重新计算checksum。(c26就是神!)<br>
+<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805081064.jpg" alt="" loading="lazy"></p>
+<p>4.发包覆盖配置:</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805505303.jpg" alt="" loading="lazy"></figure>
+<p>4.触发：</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805738375.jpg" alt="" loading="lazy"></figure>
+<h3 id="0x03-加载成功">0x03 加载成功</h3>
+<p>效果:<br>
+<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805873200.jpg" alt="" loading="lazy"></p>
+<p>实际利用可以先导出原配置,打完再给人还原回去。</p>
+<p>最近看的另一个开源系统的洞: https://t.zsxq.com/yBYZj6m</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Bypass ShutdownHook]]></title>
         <id>https://blog.thekingofduck.com/post/bypass-shutdownhook/</id>
@@ -156,7 +195,7 @@
         </link>
         <updated>2021-11-08T10:32:59.000Z</updated>
         <content type="html"><![CDATA[<h3 id="0x00-写在前面">0x00 写在前面</h3>
-<p>几个月前写的被动扫描工具<code>rcefuzzer</code>的实际使用效果挺好的,除了被污染的流量贼太娘的多以外，需要清洗掉无意义的流量。</p>
+<p>几个月前写的被动扫描工具<code>rcefuzzer</code>的实际使用效果挺好的,除了被污染的流量贼它娘的多以外，需要清洗掉无意义的流量。</p>
 <figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16360956681866/16363613590388.jpg" alt="" loading="lazy"></figure>
 <h3 id="0x01-核心问题">0x01 核心问题</h3>
 <p>减少请求数量的核心问题是:</p>
@@ -536,38 +575,6 @@ Host: www.baidu.com
 <li>把目前的壳变成真壳。</li>
 <li>开放添加套娃的自启，加密。</li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[XSS-Fishing2-CS：钓鱼自动收杆指南]]></title>
-        <id>https://blog.thekingofduck.com/post/XSS-Fishing2-CS/</id>
-        <link href="https://blog.thekingofduck.com/post/XSS-Fishing2-CS/">
-        </link>
-        <updated>2020-04-19T14:23:30.000Z</updated>
-        <content type="html"><![CDATA[<p>✔️即兴开发，Enjoy it~~</p>
-<p>项目地址：<a href="https://github.com/TheKingOfDuck/XSS-Fishing2-CS">XSS-Fishing2-CS</a></p>
-<p>使用场景：使用xss弹窗提示钓鱼的时候会面临这样一个问题，如果鱼儿已经上线了，页面那边还在不停的弹窗，很容易引起鱼儿怀疑，权限说没就没了。</p>
-<h3 id="开发">开发</h3>
-<p>cs插件:<br>
-<img src="https://blog.thekingofduck.com/post-images/fishing2.png" alt="" loading="lazy"></p>
-<p>没啥难度，都是照着官方函数库复制...魔性的是我的ubantu死活跑不起来，centos可以...</p>
-<p>php端：<br>
-<img src="https://blog.thekingofduck.com/post-images/fishing1.png" alt="" loading="lazy"><br>
-都是基本 语法，基本逻辑，但是遇到一个有趣的弱类型问题：</p>
-<pre><code>fwrite(&quot;ips.txt&quot;, &quot;127.0.0.1&quot;);
-</code></pre>
-<p>写入的结果是127，之后的内容会被当做小点数被忽略掉，所以图中代码那个base64并非我闲着没事做...</p>
-<h3 id="使用">使用</h3>
-<p>1.将xss.php放到自己的服务器上去并修改第三行的钓鱼Payload。</p>
-<p>2.修改xssFisher.cna第4行中的企业微信机器人的密钥，第23行中的xss.php的实际地址。</p>
-<p>3.加载cs插件，将xss的Payload插入目标页面。</p>
-<h3 id="特点">特点</h3>
-<p>1.企业微信上线提示</p>
-<p>2.机器上线后立即停止钓鱼的弹窗</p>
-<p>3.只停止单个IP的弹窗，其他IP仍然可以继续弹窗，继续上线。</p>
-<h3 id="todo">TODO</h3>
-<p>1.特定网段上线的问题（？这个场景没有很清楚）<br>
-2.内网ip也判断下，避免出现多个目标在一个小的局域网共用一个外网IP，其中一台上线后其他机器就不弹窗了。</p>
 ]]></content>
     </entry>
 </feed>
