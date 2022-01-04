@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://blog.thekingofduck.com</id>
     <title>CoolCat&apos; Blog</title>
-    <updated>2022-01-04T04:44:01.667Z</updated>
+    <updated>2022-01-04T04:45:43.586Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://blog.thekingofduck.com"/>
     <link rel="self" href="https://blog.thekingofduck.com/atom.xml"/>
@@ -30,7 +30,7 @@
 <h3 id="0x02-加载中">0x02 加载中</h3>
 <p>官方文档提示在转发过程中可以执行lua脚本的,所以思路也简单,利用未授权的接口覆盖一个带脚本的配置进去,再访问触发即可。</p>
 <figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406801696957.jpg" alt="" loading="lazy"></figure>
-<p>构造的过程比较乏味,很少有人这么,Google没搜到案例。</p>
+<p>构造的过程比较乏味,很少有人这么用,Google没搜到案例。</p>
 <p>大概分为：</p>
 <p>1.构造一个带脚本的数据包。<br>
 <img src="https://blog.thekingofduck.com/post-images/16406795768282/16406803886097.jpg" alt="" loading="lazy"></p>
