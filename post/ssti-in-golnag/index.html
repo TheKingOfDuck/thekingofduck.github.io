@@ -6,7 +6,7 @@
 <meta HTTP-EQUIV="pragma" CONTENT="no-cache"> 
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate"> 
 <meta HTTP-EQUIV="expires" CONTENT="0"> 
-<title>某网关的RCE | CoolCat&#39; Blog</title>	
+<title>Golang中的SSTI | CoolCat&#39; Blog</title>	
 
 <link rel="stylesheet" href="/styles/main.css">
 <script type="text/javascript">
@@ -64,7 +64,7 @@ window.onload=getCSS();
 			
 		<header id="header" class="site-header" 
 		
-		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/apisix-dashboard-unauth-rce.jpg)"
+		style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),url(https://blog.thekingofduck.com/post-images/ssti-in-golnag.jpg)"
 		
 		>
 			<div class="site-branding">
@@ -156,10 +156,10 @@ window.onload=getCSS();
 	
 	                      
 		<div class="entry-content">
-			<h1 class="wow swing entry-title">某网关的RCE</h1>
+			<h1 class="wow swing entry-title">Golang中的SSTI</h1>
 <div class="entry-meta">
 <div class="wow bounce">
-	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2022-01-04 12:33:04" itemprop="datePublished" pubdate="">2022-01-04</time></i>
+	<i class="iconfont icon-rili"> <time class="lately-a" datetime="2022-01-20 14:57:35" itemprop="datePublished" pubdate="">2022-01-20</time></i>
 	          </div>
 			
 </span>
@@ -167,46 +167,108 @@ window.onload=getCSS();
 		</div>
                   
 			<div class="wow slideInLeft entry-summary song">
-				<pre><code>之前分析的一个洞，顺便同步到博客。
+				<p>Go的标准库里有两个模板引擎, 分别是<code>text/template</code>和<code>html/template</code>, 两者接口一致, 区别在于<code>html/template</code>一般用于生成<code>HTML</code>输出, 它会自动转义<code>HTML</code>标签, 用于防范如<code>XSS</code>这样的攻击。</p>
+<h3 id="0x01-init">0x01 init...</h3>
+<p>从一个题目入手:</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16425841804004.jpg" alt="" loading="lazy"></figure>
+<p>先把题目的代码敲出来。</p>
+<pre><code>package main
+
+import (
+	&quot;bufio&quot;
+	&quot;html/template&quot;
+	&quot;log&quot;
+	&quot;os&quot;
+	&quot;os/exec&quot;
+)
+
+type Program string
+
+func (p Program) Secret(test string) string {
+	out, _ := exec.Command(test).CombinedOutput()
+	return string(out)
+}
+
+func (p Program) Label(test string) string {
+	return &quot;This is &quot; + string(test)
+}
+
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	tmpl, err := template.New(&quot;&quot;).Parse(text)
+	if err != nil {
+		log.Fatalf(&quot;Parse: %v&quot;, err)
+	}
+	tmpl.Execute(os.Stdin, Program(&quot;Intigriti&quot;))
+}
+
 </code></pre>
-<h3 id="0x01-初始化">0x01 初始化</h3>
-<p>diff了下代码,以为会和Java那种一样,两个中间件解析差异造成的问题。还去看底层代码了, 实际上不是, 此处浪费了一小时...</p>
-<figure data-type="image" tabindex="1"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406798783868.jpg" alt="" loading="lazy"></figure>
-<p>实际上就是<code>/apisix/admin/migrate/export</code>,<code>/apisix/admin/migrate/import</code>没做鉴权而已。(鉴权中间件是在droplet中注册的 而这两路由没有用wgin.Wraps()函数转换为droplet的路由函数)</p>
-<p>环境搭建:</p>
-<pre><code>https://github.com/apache/apisix-docker
+<p>代码量很少, 很明显的模板注入, 问题是怎么构造<code>payload</code>去调用<code>Secret</code>方法执行命令。</p>
+<h3 id="0x02-loading">0x02 loading...</h3>
+<p>快捷键进入<code>html/template</code>的代码时<code>vscode</code>自动打开了官方文档地址, 代码路径也提示了, 两者结合起来看。</p>
+<pre><code>https://pkg.go.dev/html/template?utm_source=gopls
 </code></pre>
-<p>将2.10.1-alpine改成2.7就可以快速跑起来了。<br>
-<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406800880453.jpg" alt="" loading="lazy"></p>
-<h3 id="0x02-加载中">0x02 加载中</h3>
-<p>官方文档提示在转发过程中可以执行lua脚本的,所以思路也简单,利用未授权的接口覆盖一个带脚本的配置进去,再访问触发即可。</p>
-<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406801696957.jpg" alt="" loading="lazy"></figure>
-<p>构造的过程比较乏味,很少有人这么用,Google没搜到案例。</p>
-<p>大概分为：</p>
-<p>1.构造一个带脚本的数据包。<br>
-<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406803886097.jpg" alt="" loading="lazy"></p>
-<p>2.导出payload模板。<br>
-<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406804536525.jpg" alt="" loading="lazy"></p>
-<p>3.重新计算checksum。(c26就是神!)<br>
-<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805081064.jpg" alt="" loading="lazy"></p>
-<p>4.发包覆盖配置:</p>
-<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805505303.jpg" alt="" loading="lazy"></figure>
-<p>4.触发：</p>
-<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805738375.jpg" alt="" loading="lazy"></figure>
-<h3 id="0x03-加载成功">0x03 加载成功</h3>
-<p>效果:<br>
-<img src="https://blog.thekingofduck.com/post-images/16406795768282/16406805873200.jpg" alt="" loading="lazy"></p>
-<p>实际利用可以先导出原配置,打完再给人还原回去。</p>
-<p>最近看的另一个开源系统的洞: https://t.zsxq.com/yBYZj6m</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16425816052700.jpg" alt="" loading="lazy"></figure>
+<p>一些从文档中了解到的常识:</p>
+<ol>
+<li>模板的占位符为<code>{{语法}}</code>, 这里的<code>语法</code>官方称之为<code>Action</code>, 其内部不能有换行，但可以写注释,注释里可以有换行。</li>
+<li>特殊的<code>Action</code>: <code>{{.}}</code>,中间的点表示当前作用域的当前对象, 类似<code>JAVA</code>中的<code>this</code>关键字。</li>
+<li><code>Action</code>中支持定义变量,命名以<code>$</code>开头,如<code>$var = &quot;test&quot;</code>,有一个比较特殊的变量<code>$</code>,代表全局作用域的全局变量,即在调用模板引擎的<code>Execute()</code>方法时定义的值,如<code>{{$}}</code>在上面的题目中获取到的值就是<code>Intigriti</code>.</li>
+<li><code>Action</code>中内置了一些基础语法,如常见的语法,如判断<code>if else</code>,或且非<code>or and not</code>,二元比较<code>eq ne</code>,输出<code>print printf println</code>等等,除此之外还有一些常用的编码函数，如<code>urlescaper,attrescaper,htmlescaper</code>。</li>
+<li><code>Action</code>中支持类似<code>unix</code>下的管道符用法,<code>|</code>前面的命令会将运算结果(或返回值)传递给后一个命令的最后一个位置。</li>
+</ol>
+<p>有一些前置知识后结合代码再看,测试单元里面能找到很多具体的用法。</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16426515370702.jpg" alt="" loading="lazy"></figure>
+<p>比如内部方法调用:</p>
+<figure data-type="image" tabindex="4"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16425832915575.jpg" alt="" loading="lazy"></figure>
+<p>查看对应的方法</p>
+<figure data-type="image" tabindex="5"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16426518431696.jpg" alt="" loading="lazy"></figure>
+<p>参数名参数类型都对得上,在题目中进行尝试:<br>
+<img src="https://blog.thekingofduck.com/post-images/16425814848717/16425831272111.jpg" alt="" loading="lazy"></p>
+<h3 id="0x03-loaded">0x03 loaded</h3>
+<p>Done, 上面提到<code>Action</code>中是支持管道符的, 所以答案可以是:</p>
+<pre><code>{{.Secret &quot;whoami&quot;}}
+{{&quot;whoami&quot;| .Secret}}
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16426521826676.jpg" alt="" loading="lazy"></figure>
+<h3 id="0x04-in-the-end">0x04 in the end</h3>
+<p>一些思考：</p>
+<p>1.假设代码中没有可命令执行的函数是否可以通过模板本身支持的语法到<code>rce</code>?</p>
+<blockquote>
+<p>不可以, 模板本身支持的语法很有限, 并不支持动态导入其他标准库并调用(<code>Go</code>是编译型语言...),不过可以关注一下其他函数,比如文件读写,网络请求等等,条条大路通<code>RCE</code>...</p>
+</blockquote>
+<p>2.白盒怎么挖掘?</p>
+<blockquote>
+<p>关注代码是否导入<code>text/template</code>或<code>html/template</code>,解析的文本或文件内容是否外部可控。值得一提的是<code>gosec</code>有关注<code>html/template</code>的安全问题,但只是检测输出的内容是否在做了转义,没有关注模板注入的问题,默认是扫不到这个漏洞的,基于原代码修改一下即可完成白盒扫描插件的编写。</p>
+</blockquote>
+<figure data-type="image" tabindex="7"><img src="https://blog.thekingofduck.com/post-images/16425814848717/16426578747271.jpg" alt="" loading="lazy"></figure>
+<p>3.黑盒怎么挖掘?</p>
+<blockquote>
+<p>引擎中无网络请求相关的方法,无法通过dnslog/httplog的方式盲测漏洞,但其本身支持一些编码函数,有回显的场景可通过表达式判断是否存在漏洞。<code>payload</code>如下,执行后回显的值为<code>95272022</code></p>
+<pre><code>{{println 0B101101011011011110001010110}}
+</code></pre>
+<p>rcefuzzer在配置<code>paramPollution.expr</code>中加一条<code>payload</code>即可</p>
+<pre><code>{{println 0B101101011011011110001010110}}|95272022
+</code></pre>
+</blockquote>
+<p>4.对抗相关</p>
+<blockquote>
+<p>该模板引擎的占位符本身和其他语言是重叠的, 这个强特征在流量设备中应该有已知规则会拦截; 攻击方则可借助内置的一些函数就行敏感信息规避,比如上述题目中的答案还可以写成：</p>
+<pre><code>{{/*&quot;}}{{&quot;*/}}{{- printf `%sam%s` `who` `i`| .Secret -}}{{/*&quot;}}{{&quot;*/}}
+</code></pre>
+<p>多添加<code>{{</code>和<code>}}</code>,扰乱正则匹配。</p>
+</blockquote>
+<p>知识面覆盖有限, 以上提到的所有内容均可能有误,orz 日常被自己菜哭。</p>
 
 							</div>
 	<div class="wow bounceInDown vt-post-tags">
  
-				<a href="https://blog.thekingofduck.com/tag/xA_Q02Nm7/" rel="tag">云安全</a>	
+				<a href="https://blog.thekingofduck.com/tag/V0pC4XLk8/" rel="tag">go</a>	
 				 
-				<a href="https://blog.thekingofduck.com/tag/M9g2RDAmwz/" rel="tag">apisix-dashboard</a>	
+				<a href="https://blog.thekingofduck.com/tag/Sfa9b2Ynvi/" rel="tag">ssti</a>	
 				 
-				<a href="https://blog.thekingofduck.com/tag/R0o48rT7Ne/" rel="tag">漏洞分析</a>	
+				<a href="https://blog.thekingofduck.com/tag/0q9g0ZOwsM/" rel="tag">模板注入</a>	
 				 
 				<a href="https://blog.thekingofduck.com/tag/AbwEsrrROo/" rel="tag">golang</a>	
 				 
@@ -215,10 +277,8 @@ window.onload=getCSS();
 		
 		<div class="nav-links3">
       
-		<div class="wow bounceInLeft nav-previous3"><a href="https://blog.thekingofduck.com/post/ssti-in-golnag/" rel="prev"> Golang中的SSTI</a></div>
 		 
-		 
-		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/bypass-shutdownhook/" rel="next"> Bypass ShutdownHook</a></div>
+		<div class="wow bounceInRight nav-next3"><a href="https://blog.thekingofduck.com/post/apisix-dashboard-unauth-rce/" rel="next"> 某网关的RCE</a></div>
 		
 		</div>
 	</nav>
